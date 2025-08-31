@@ -1,34 +1,49 @@
 import React from 'react';
 
+
 interface UploadProps {
-  onUpload: (file: File) => void;
-  onPasteLink: (url: string) => void;
+  onUpload: (file: File, title?: string) => void;
+  onPasteLink: (url: string, title?: string) => void;
   loading?: boolean;
   error?: string;
   success?: string;
   disabled?: boolean;
+  showTitleInput?: boolean;
 }
 
-export const UploadInput: React.FC<UploadProps> = ({ onUpload, onPasteLink, loading, error, success, disabled }) => {
+
+export const UploadInput: React.FC<UploadProps> = ({ onUpload, onPasteLink, loading, error, success, disabled, showTitleInput }) => {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [url, setUrl] = React.useState('');
+  const [title, setTitle] = React.useState('');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      onUpload(e.target.files[0]);
+      onUpload(e.target.files[0], showTitleInput ? title : undefined);
     }
   };
 
   const handlePasteLink = (e: React.FormEvent) => {
     e.preventDefault();
     if (url) {
-      onPasteLink(url);
+      onPasteLink(url, showTitleInput ? title : undefined);
     }
   };
 
   return (
     <div className="flex flex-col gap-4 w-full max-w-md mx-auto">
       <label className="block text-sm font-medium">Sube un archivo de audio/video</label>
+      {showTitleInput && (
+        <input
+          type="text"
+          placeholder="Título del archivo (opcional)"
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          className="border rounded px-3 py-2 mb-1"
+          aria-label="Título del archivo"
+          disabled={disabled}
+        />
+      )}
       <input
         ref={fileInputRef}
         type="file"

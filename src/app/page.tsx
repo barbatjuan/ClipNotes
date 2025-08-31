@@ -3,6 +3,8 @@ import AuthForm from '@/components/AuthForm';
 import { supabase } from '@/lib/supabase/client';
 import Head from 'next/head';
 import { CheckCircleIcon, LinkIcon, SparklesIcon, DocumentCheckIcon } from '@heroicons/react/24/outline';
+
+import { PaypalSubscribeButton } from '@/components/PaypalSubscribeButton';
 import Header from '@/components/layout/Header';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -18,6 +20,7 @@ export default function Home() {
   const [notes, setNotes] = useState('');
   const [user, setUser] = useState<any>(null);
   const feedback = useFeedback();
+  const [showPaypal, setShowPaypal] = useState<'basic' | 'pro' | null>(null);
 
   // Detectar usuario autenticado
   useEffect(() => {
@@ -199,26 +202,29 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-              Precios sencillos, sin sorpresas
+              Planes y precios
             </h2>
             <p className="mt-4 text-xl text-gray-500">
-              Empieza gratis y actualiza cuando lo necesites.
+              Elige el plan que se adapta a tus necesidades. Sin plan gratis, sin sorpresas.
             </p>
           </div>
 
           <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0">
-            <div className="border border-gray-200 rounded-lg shadow-sm divide-y divide-gray-200">
+            <div className="border-2 border-yellow-500 rounded-lg shadow-sm divide-y divide-gray-200">
               <div className="p-6">
-                <h2 className="text-lg leading-6 font-medium text-gray-900">Gratis</h2>
+                <h2 className="text-lg leading-6 font-medium text-gray-900">Básico</h2>
                 <p className="mt-4">
-                  <span className="text-4xl font-extrabold text-gray-900">$0</span>
+                  <span className="text-4xl font-extrabold text-gray-900">$5</span>
                   <span className="text-base font-medium text-gray-500">/mes</span>
                 </p>
                 <p className="mt-4 text-sm text-gray-500">
-                  Perfecto para probar el servicio.
+                  60 minutos de procesamiento al mes.
                 </p>
-                <button className="mt-8 block w-full bg-gray-800 border border-gray-800 rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-gray-900">
-                  Empezar gratis
+                <button
+                  className="mt-8 block w-full bg-yellow-500 border border-yellow-500 rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-yellow-600"
+                  onClick={() => setShowPaypal('basic')}
+                >
+                  Elegir Básico
                 </button>
               </div>
               <div className="pt-6 pb-8 px-6">
@@ -228,7 +234,7 @@ export default function Home() {
                     <div className="flex-shrink-0">
                       <CheckCircleIcon className="h-5 w-5 text-green-500" aria-hidden="true" />
                     </div>
-                    <p className="ml-3 text-base text-gray-700">30 minutos de procesamiento/mes</p>
+                    <p className="ml-3 text-base text-gray-700">60 minutos de procesamiento/mes</p>
                   </li>
                   <li className="flex items-start">
                     <div className="flex-shrink-0">
@@ -255,24 +261,53 @@ export default function Home() {
                   </p>
                 </div>
                 <p className="mt-4">
-                  <span className="text-4xl font-extrabold text-gray-900">$7</span>
+                  <span className="text-4xl font-extrabold text-gray-900">$19</span>
                   <span className="text-base font-medium text-gray-500">/mes</span>
                 </p>
                 <p className="mt-4 text-sm text-gray-500">
-                  Ideal para uso profesional.
+                  300 minutos de procesamiento al mes.
                 </p>
-                <button className="mt-8 block w-full bg-primary border border-transparent rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-primary/90">
-                  Comenzar ahora
+                <button
+                  className="mt-8 block w-full bg-primary border border-transparent rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-primary/90"
+                  onClick={() => setShowPaypal('pro')}
+                >
+                  Elegir Pro
                 </button>
+      {/* Modal PayPal */}
+      {showPaypal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full relative">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
+              onClick={() => setShowPaypal(null)}
+            >
+              ×
+            </button>
+            <h3 className="text-lg font-bold mb-4 text-center">Completa tu suscripción</h3>
+            {showPaypal === 'basic' && (
+              <PaypalSubscribeButton
+                planId="P-33L930430F322933SNCZN4IQ" // Plan Básico real
+                onApprove={() => { setShowPaypal(null); window.location.href = '/dashboard'; }}
+              />
+            )}
+            {showPaypal === 'pro' && (
+              <PaypalSubscribeButton
+                planId="P-5X541101L03472358NCZN6VY" // Reemplaza por tu planId real (pro)
+                onApprove={() => { setShowPaypal(null); window.location.href = '/dashboard'; }}
+              />
+            )}
+          </div>
+        </div>
+      )}
               </div>
               <div className="pt-6 pb-8 px-6">
-                <h3 className="text-xs font-medium text-gray-900 tracking-wide uppercase">Todo en Gratis, más:</h3>
+                <h3 className="text-xs font-medium text-gray-900 tracking-wide uppercase">Incluye</h3>
                 <ul className="mt-6 space-y-4">
                   <li className="flex items-start">
                     <div className="flex-shrink-0">
                       <CheckCircleIcon className="h-5 w-5 text-green-500" aria-hidden="true" />
                     </div>
-                    <p className="ml-3 text-base text-gray-700">120 minutos de procesamiento/mes</p>
+                    <p className="ml-3 text-base text-gray-700">300 minutos de procesamiento/mes</p>
                   </li>
                   <li className="flex items-start">
                     <div className="flex-shrink-0">

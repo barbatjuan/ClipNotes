@@ -42,17 +42,19 @@ export default function Header() {
             <Link href="/" className="flex items-center">
               <span className="text-xl font-bold text-primary">ClipNotes</span>
             </Link>
-            <div className="hidden ml-10 space-x-8 lg:block">
-              <Link href="/#features" className="text-base font-medium text-gray-500 hover:text-gray-900">
-                Cómo funciona
-              </Link>
-              <Link href="/#pricing" className="ml-8 text-base font-medium text-gray-500 hover:text-gray-900">
-                Precios
-              </Link>
-              <Link href="/#faq" className="ml-8 text-base font-medium text-gray-500 hover:text-gray-900">
-                Preguntas Frecuentes
-              </Link>
-            </div>
+            {!user && (
+              <div className="hidden ml-10 space-x-8 lg:block">
+                <Link href="/#features" className="text-base font-medium text-gray-500 hover:text-gray-900">
+                  Cómo funciona
+                </Link>
+                <Link href="/#pricing" className="ml-8 text-base font-medium text-gray-500 hover:text-gray-900">
+                  Precios
+                </Link>
+                <Link href="/#faq" className="ml-8 text-base font-medium text-gray-500 hover:text-gray-900">
+                  Preguntas Frecuentes
+                </Link>
+              </div>
+            )}
           </div>
           <div className="ml-10 space-x-4">
             {user ? (
@@ -63,12 +65,20 @@ export default function Header() {
                 Cerrar sesión
               </button>
             ) : (
-              <button
-                onClick={() => setShowAuth(true)}
-                className="inline-block rounded-md border border-transparent bg-primary py-2 px-4 text-base font-medium text-white hover:bg-primary/90"
-              >
-                Acceder
-              </button>
+              <>
+                <button
+                  onClick={() => setShowAuth(true)}
+                  className="inline-block rounded-md border border-transparent bg-primary py-2 px-4 text-base font-medium text-white hover:bg-primary/90"
+                >
+                  Acceder
+                </button>
+                <button
+                  onClick={() => setShowAuth(true)}
+                  className="inline-block rounded-md border border-primary bg-white py-2 px-4 text-base font-medium text-primary hover:bg-gray-100 hover:border-primary ml-2"
+                >
+                  Registrarse
+                </button>
+              </>
             )}
           </div>
         </div>

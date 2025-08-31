@@ -1,3 +1,13 @@
+// Obtiene la duración exacta del audio en segundos usando ffprobe
+function getAudioDuration(filePath) {
+  try {
+    const output = execSync(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`);
+    return Math.round(parseFloat(output.toString()));
+  } catch (e) {
+    console.error('Error obteniendo duración con ffprobe:', e);
+    return null;
+  }
+}
 // Actualiza el job con los resultados finales y lo marca como completado
 async function updateJobResult(id, transcription, summary, progress = 100) {
   const { error, data } = await supabase.from('jobs').update({
@@ -84,11 +94,11 @@ async function transcribeAudio(filePath) {
 }
 
 async function summarizeText(text) {
-  const prompt = `Resume el siguiente texto en español, extrae los puntos clave y genera una lista de acciones si corresponde.\n\nTexto:\n${text}`;
+  const prompt = `Resume el siguiente texto en español siguiendo estas instrucciones:\n\n- Extrae los puntos clave de forma clara y concisa, usando viñetas.\n- Si hay acciones o pasos, enuméralos en una sección separada llamada "Acciones recomendadas".\n- Si hay conclusiones, resáltalas en una sección final llamada "Conclusiones".\n- Si se mencionan problemas, errores o advertencias, crea una sección llamada "Alertas" o "Riesgos".\n- Usa títulos y subtítulos para separar cada sección.\n- El resumen debe ser útil para alguien que no participó en la reunión o no leyó el texto original.\n- Sé profesional, directo y evita redundancias.\n\nTexto:\n${text}`;
   const resp = await openai.chat.completions.create({
     model: 'gpt-4o',
     messages: [
-      { role: 'system', content: 'Eres un asistente experto en resumir reuniones y videos.' },
+      { role: 'system', content: 'Eres un asistente experto en resumir reuniones, videos y documentos técnicos para equipos de negocio. Tu objetivo es entregar resúmenes claros, estructurados y accionables.' },
       { role: 'user', content: prompt },
     ],
     max_tokens: 800,
@@ -143,8 +153,17 @@ async function processJob() {
     // Guardar resultados en Supabase
     try {
       console.log('Guardando resultados en Supabase...');
-      await updateJobResult(job.id, transcription, summary, 100);
-      console.log('Job completado:', job.id);
+      const audioDuration = getAudioDuration(audioPath);
+      await supabase.from('jobs').update({
+        status: 'completed',
+        raw_transcription: transcription,
+        ai_summary: summary,
+        progress: 100,
+        updated_at: new Date().toISOString(),
+        error_message: null,
+        audio_duration: audioDuration
+      }).eq('id', job.id);
+      console.log('Job completado:', job.id, 'Duración:', audioDuration, 'segundos');
     } catch (e) {
       console.error('Error guardando resultados:', e);
       throw e;
