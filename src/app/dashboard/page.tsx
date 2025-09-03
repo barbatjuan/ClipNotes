@@ -450,6 +450,28 @@ export default function Dashboard() {
                 {jobs.filter(j => j.status === 'completed').length}
               </div>
               <div className="text-secondary-600 dark:text-secondary-300 font-medium mb-3">Resúmenes Completados</div>
+              <div className="text-sm text-secondary-500 dark:text-secondary-400 mb-3">
+                {(() => {
+                  const completed = jobs.filter(j => j.status === 'completed');
+                  const countSentences = (text?: string) => {
+                    if (!text) return 0;
+                    return text
+                      .split(/(?<=[\.\!\?])\s+/)
+                      .map(s => s.trim())
+                      .filter(Boolean).length;
+                  };
+                  const totalSummarySentences = completed.reduce((acc, j) => acc + countSentences(j.ai_summary), 0);
+                  const estimatedOriginalSentences = completed.reduce((acc, j) => {
+                    if (j.raw_transcription && j.raw_transcription.length > 50) {
+                      return acc + countSentences(j.raw_transcription);
+                    }
+                    // Estimar: 150 wpm, 15 palabras por frase => ~10 frases por minuto
+                    const minutes = (j.duration_seconds || 0) / 60;
+                    return acc + Math.round(minutes * 10);
+                  }, 0);
+                  return `${estimatedOriginalSentences} frases resumidas en ${totalSummarySentences || 0}`;
+                })()}
+              </div>
               <div className="w-full bg-secondary-200 rounded-full h-2">
                 <div 
                   className="bg-gradient-to-r from-success-500 to-success-600 h-2 rounded-full transition-all duration-500" 
@@ -475,6 +497,14 @@ export default function Dashboard() {
                 <span className="text-lg text-secondary-500 dark:text-secondary-400">/{userProfile?.monthly_minutes_limit || 60}</span>
               </div>
               <div className="text-secondary-600 dark:text-secondary-300 font-medium mb-3">Minutos Consumidos</div>
+              <div className="text-sm text-secondary-500 dark:text-secondary-400 mb-3">
+                {(() => {
+                  const used = userProfile ? Math.ceil((userProfile.minutes_processed_current_month || 0) / 60) : 0;
+                  const limit = userProfile?.monthly_minutes_limit || 60;
+                  const remaining = Math.max(limit - used, 0);
+                  return `Te quedan ${remaining} minutos`;
+                })()}
+              </div>
               <div className="w-full bg-secondary-200 rounded-full h-2">
                 <div 
                   className="bg-gradient-to-r from-primary-500 to-primary-600 h-2 rounded-full transition-all duration-500" 

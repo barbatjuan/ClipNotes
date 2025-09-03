@@ -34,7 +34,6 @@ export const UploadInput: React.FC<UploadProps> = ({ onUpload, onPasteLink, load
     <div className="w-full">
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-semibold mb-3 text-secondary-700 dark:text-secondary-200">Pegar enlace de video</label>
           <form onSubmit={handlePasteLink} className="flex gap-3">
             {showTitleInput && (
               <input
@@ -49,14 +48,14 @@ export const UploadInput: React.FC<UploadProps> = ({ onUpload, onPasteLink, load
             )}
             <input
               type="url"
-              placeholder="YouTube, Vimeo, Loom, etc."
+              placeholder="Pega tu enlace de YouTube, Loom, Meet, Vimeo, etc."
               value={url}
               onChange={e => setUrl(e.target.value)}
-              className="flex-1 input"
-              aria-label="Pegar link"
+              className="flex-1 input placeholder-secondary-500 dark:placeholder-secondary-400 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-primary-400 focus:border-primary-400"
+              aria-label="Pegar enlace de video"
               disabled={disabled}
             />
-            <button type="submit" className="btn btn-primary whitespace-nowrap" disabled={loading || disabled}>
+            <button type="submit" className="btn btn-primary whitespace-nowrap px-5 md:px-6 py-3 text-base font-semibold transition-transform hover:scale-[1.02]" disabled={loading || disabled}>
               {loading ? 'Procesando...' : 'Resumir'}
             </button>
           </form>

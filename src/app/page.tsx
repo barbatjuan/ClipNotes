@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { UploadInput } from '@/components/UploadInput';
 import { SummaryDisplay } from '@/components/SummaryDisplay';
+import { RotatingHeadline } from '@/components/RotatingHeadline';
 import { useFeedback } from '@/hooks/useFeedback';
 import { urlSchema, fileSchema } from '@/utils/validation';
 
@@ -21,6 +22,9 @@ export default function Home() {
   const [user, setUser] = useState<any>(null);
   const feedback = useFeedback();
   const [showPaypal, setShowPaypal] = useState<'basic' | 'pro' | null>(null);
+  const [rotatingWord, setRotatingWord] = useState<'reuniones' | 'clases' | 'webinars' | 'entrevistas'>('reuniones');
+  const [wordAnimating, setWordAnimating] = useState(false);
+  const [pauseRotation, setPauseRotation] = useState(false);
 
   // Detectar usuario autenticado
   useEffect(() => {
@@ -42,6 +46,23 @@ export default function Home() {
       listener?.subscription.unsubscribe();
     };
   }, [router]);
+
+  // Rotar palabra del hero entre múltiples términos con transición
+  useEffect(() => {
+    const words: Array<'reuniones' | 'clases' | 'webinars' | 'entrevistas'> = ['reuniones', 'clases', 'webinars', 'entrevistas'];
+    let i = 0;
+    const tick = () => {
+      setWordAnimating(true);
+      setTimeout(() => {
+        i = (i + 1) % words.length;
+        setRotatingWord(words[i]);
+        // pequeño delay para permitir que la nueva palabra haga fade-in
+        requestAnimationFrame(() => setWordAnimating(false));
+      }, 200);
+    };
+    const id = setInterval(() => { if (!pauseRotation) tick(); }, 3000);
+    return () => clearInterval(id);
+  }, [pauseRotation]);
 
   // Integración real con OpenAI vía API local
   // Nuevo flujo: encolar job
@@ -113,17 +134,28 @@ export default function Home() {
       <section className="bg-gradient-to-b from-secondary-50 to-secondary-100 dark:from-secondary-900 dark:to-secondary-800 pb-16 pt-12">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-secondary-900 dark:text-white leading-tight">
-            <span className="block mb-2">Tus reuniones grabadas,</span>
+            <span
+              className="block mb-2 h-[1.2em]"
+              aria-live="polite"
+              onMouseEnter={() => setPauseRotation(true)}
+              onMouseLeave={() => setPauseRotation(false)}
+            >
+              <span
+                className={
+                  `inline-block transition-all duration-300 ease-out ` +
+                  (wordAnimating ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0')
+                }
+              >
+                Tus {rotatingWord} grabadas,
+              </span>
+            </span>
             <span className="block text-primary-500 drop-shadow">Convertidas en Notas Perfectas</span>
           </h1>
+          <RotatingHeadline />
           <p className="mt-6 max-w-xl mx-auto text-lg md:text-2xl text-secondary-600 dark:text-secondary-300">
-            Pega el link o sube tu archivo de Loom, Zoom, Meet o cualquier video/audio. Obtén una transcripción y un resumen accionable al instante.
+            Pega un link o sube un archivo de Zoom, Meet o Loom. Transcripción y resumen al instante.
           </p>
-          {!user ? (
-            <div className="my-6 text-secondary-600 dark:text-secondary-300 font-medium text-lg">
-              Inicia sesión o crea una cuenta para usar el generador de resúmenes.
-            </div>
-          ) : (
+          {user && (
             <div className="my-6 text-success-600 dark:text-success-400 font-semibold text-lg">¡Bienvenido! Ya puedes generar tus resúmenes.</div>
           )}
           <div className="mt-10 max-w-xl mx-auto">
@@ -209,22 +241,23 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0">
-            <div className="border-2 border-warning-500 rounded-lg shadow-soft bg-white/80 dark:bg-secondary-900/60 backdrop-blur divide-y divide-secondary-200 dark:divide-secondary-800">
+          <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-6 lg:max-w-5xl lg:mx-auto xl:max-w-none xl:mx-0">
+            {/* Plan Starter */}
+            <div className="border-2 border-success-500 rounded-lg shadow-soft bg-white/80 dark:bg-secondary-900/60 backdrop-blur divide-y divide-secondary-200 dark:divide-secondary-800">
               <div className="p-6">
-                <h2 className="text-lg leading-6 font-medium text-secondary-900 dark:text-white">Básico</h2>
+                <h2 className="text-lg leading-6 font-medium text-secondary-900 dark:text-white">Starter</h2>
                 <p className="mt-4">
-                  <span className="text-4xl font-extrabold text-secondary-900 dark:text-white">$5</span>
+                  <span className="text-4xl font-extrabold text-success-600 dark:text-success-400">$5</span>
                   <span className="text-base font-medium text-secondary-600 dark:text-secondary-400">/mes</span>
                 </p>
                 <p className="mt-4 text-sm text-secondary-600 dark:text-secondary-400">
                   60 minutos de procesamiento al mes.
                 </p>
                 <button
-                  className="mt-8 block w-full bg-warning-500 border border-warning-500 rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-warning-600"
+                  className="mt-8 block w-full bg-success-500 border border-success-500 rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-success-600"
                   onClick={() => setShowPaypal('basic')}
                 >
-                  Elegir Básico
+                  Elegir Starter
                 </button>
               </div>
               <div className="pt-6 pb-8 px-6">
@@ -251,14 +284,11 @@ export default function Home() {
                 </ul>
               </div>
             </div>
-
-            <div className="border-2 border-primary-500 rounded-lg shadow-glow bg-white/80 dark:bg-secondary-900/60 backdrop-blur divide-y divide-secondary-200 dark:divide-secondary-800">
+            <div className="border-2 border-warning-500 rounded-lg shadow-soft bg-white/80 dark:bg-secondary-900/60 backdrop-blur divide-y divide-secondary-200 dark:divide-secondary-800">
               <div className="p-6">
                 <div className="flex justify-between items-center">
-                  <h2 className="text-lg leading-6 font-medium text-secondary-900 dark:text-white">Pro</h2>
-                  <p className="bg-primary-500/10 text-primary-500 text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                    Popular
-                  </p>
+                  <h2 className="text-lg leading-6 font-medium text-secondary-900 dark:text-white">Premium</h2>
+                  <p className="bg-primary-500/10 text-primary-500 text-xs font-semibold px-2.5 py-0.5 rounded-full">Popular</p>
                 </div>
                 <p className="mt-4">
                   <span className="text-4xl font-extrabold text-secondary-900 dark:text-white">$19</span>
@@ -268,10 +298,58 @@ export default function Home() {
                   300 minutos de procesamiento al mes.
                 </p>
                 <button
+                  className="mt-8 block w-full bg-warning-500 border border-warning-500 rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-warning-600"
+                  onClick={() => setShowPaypal('pro')}
+                >
+                  Elegir Premium
+                </button>
+              </div>
+              <div className="pt-6 pb-8 px-6">
+                <h3 className="text-xs font-medium text-secondary-900 dark:text-white tracking-wide uppercase">Incluye</h3>
+                <ul className="mt-6 space-y-4">
+                  <li className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <CheckCircleIcon className="h-5 w-5 text-success-500" aria-hidden="true" />
+                    </div>
+                    <p className="ml-3 text-base text-secondary-700 dark:text-secondary-300">300 minutos de procesamiento/mes</p>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <CheckCircleIcon className="h-5 w-5 text-success-500" aria-hidden="true" />
+                    </div>
+                    <p className="ml-3 text-base text-secondary-700 dark:text-secondary-300">Resúmenes avanzados con IA</p>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <CheckCircleIcon className="h-5 w-5 text-success-500" aria-hidden="true" />
+                    </div>
+                    <p className="ml-3 text-base text-secondary-700 dark:text-secondary-300">Historial ilimitado</p>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <CheckCircleIcon className="h-5 w-5 text-success-500" aria-hidden="true" />
+                    </div>
+                    <p className="ml-3 text-base text-secondary-700 dark:text-secondary-300">Distintos tipos de resumen: Ejecutivo, Técnico y Amigable</p>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="border-2 border-primary-500 rounded-lg shadow-glow bg-white/80 dark:bg-secondary-900/60 backdrop-blur divide-y divide-secondary-200 dark:divide-secondary-800">
+              <div className="p-6">
+                <h2 className="text-lg leading-6 font-medium text-secondary-900 dark:text-white">Enterprise</h2>
+                <p className="mt-4">
+                  <span className="text-4xl font-extrabold text-secondary-900 dark:text-white">$39</span>
+                  <span className="text-base font-medium text-secondary-600 dark:text-secondary-400">/mes</span>
+                </p>
+                <p className="mt-4 text-sm text-secondary-600 dark:text-secondary-400">
+                  600 minutos de procesamiento al mes.
+                </p>
+                <button
                   className="mt-8 block w-full bg-primary-500 border border-transparent rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-primary-600"
                   onClick={() => setShowPaypal('pro')}
                 >
-                  Elegir Pro
+                  Elegir Enterprise
                 </button>
       {/* Modal PayPal */}
       {showPaypal && (
@@ -307,7 +385,7 @@ export default function Home() {
                     <div className="flex-shrink-0">
                       <CheckCircleIcon className="h-5 w-5 text-success-500" aria-hidden="true" />
                     </div>
-                    <p className="ml-3 text-base text-secondary-700 dark:text-secondary-300">300 minutos de procesamiento/mes</p>
+                    <p className="ml-3 text-base text-secondary-700 dark:text-secondary-300">600 minutos de procesamiento/mes</p>
                   </li>
                   <li className="flex items-start">
                     <div className="flex-shrink-0">
@@ -326,6 +404,18 @@ export default function Home() {
                       <CheckCircleIcon className="h-5 w-5 text-success-500" aria-hidden="true" />
                     </div>
                     <p className="ml-3 text-base text-secondary-700 dark:text-secondary-300">Soporte prioritario</p>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <CheckCircleIcon className="h-5 w-5 text-success-500" aria-hidden="true" />
+                    </div>
+                    <p className="ml-3 text-base text-secondary-700 dark:text-secondary-300">Traducción automática de resúmenes</p>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <CheckCircleIcon className="h-5 w-5 text-success-500" aria-hidden="true" />
+                    </div>
+                    <p className="ml-3 text-base text-secondary-700 dark:text-secondary-300">Envío de resúmenes por correo automático</p>
                   </li>
                 </ul>
               </div>
@@ -380,7 +470,7 @@ export default function Home() {
                   ¿Puedo probar el servicio antes de pagar?
                 </dt>
                 <dd className="mt-2 text-base text-secondary-600 dark:text-secondary-400">
-                  ¡Claro! Ofrecemos un plan gratuito con 30 minutos de procesamiento al mes. Puedes probar todas las funciones sin necesidad de tarjeta de crédito.
+                  Ofrecemos el plan Starter por $5/mes con 60 minutos de procesamiento. Ideal para probar todas las funciones sin compromiso.
                 </dd>
               </div>
             </dl>
