@@ -9,3 +9,13 @@ export async function getUserJobs(userId: string) {
   if (error) throw error;
   return data;
 }
+
+export async function getJobById(id: string) {
+  const { data, error } = await supabase
+    .from('jobs')
+    .select('*')
+    .eq('id', id)
+    .single();
+  if (error) throw error;
+  return data;
+}

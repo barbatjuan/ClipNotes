@@ -33,6 +33,9 @@ export type Tables = {
       audio_duration: number | null;
       raw_transcription: string | null;
       ai_summary: string | null;
+      title: string | null;
+      error_message: string | null;
+      progress: number | null;
       created_at: string;
       updated_at: string;
     };

@@ -99,7 +99,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-secondary-50 dark:bg-secondary-950">
       <Head>
         <title>ClipNotes - De Video a Notas en Segundos</title>
         <meta name="description" content="Tus Reuniones Grabadas, Convertidas en Notas Perfectas" />
@@ -110,21 +110,21 @@ export default function Home() {
       <Header />
 
       {/* Hero Section Mejorada */}
-      <section className="bg-gradient-to-b from-white to-gray-50 pb-16 pt-12">
+      <section className="bg-gradient-to-b from-secondary-50 to-secondary-100 dark:from-secondary-900 dark:to-secondary-800 pb-16 pt-12">
         <div className="max-w-3xl mx-auto px-4 text-center">
-          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-gray-900 leading-tight">
+          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-secondary-900 dark:text-white leading-tight">
             <span className="block mb-2">Tus reuniones grabadas,</span>
-            <span className="block text-primary drop-shadow">Convertidas en Notas Perfectas</span>
+            <span className="block text-primary-500 drop-shadow">Convertidas en Notas Perfectas</span>
           </h1>
-          <p className="mt-6 max-w-xl mx-auto text-lg md:text-2xl text-gray-600">
+          <p className="mt-6 max-w-xl mx-auto text-lg md:text-2xl text-secondary-600 dark:text-secondary-300">
             Pega el link o sube tu archivo de Loom, Zoom, Meet o cualquier video/audio. Obtén una transcripción y un resumen accionable al instante.
           </p>
           {!user ? (
-            <div className="my-6 text-gray-600 font-medium text-lg">
+            <div className="my-6 text-secondary-600 dark:text-secondary-300 font-medium text-lg">
               Inicia sesión o crea una cuenta para usar el generador de resúmenes.
             </div>
           ) : (
-            <div className="my-6 text-green-700 font-semibold text-lg">¡Bienvenido! Ya puedes generar tus resúmenes.</div>
+            <div className="my-6 text-success-600 dark:text-success-400 font-semibold text-lg">¡Bienvenido! Ya puedes generar tus resúmenes.</div>
           )}
           <div className="mt-10 max-w-xl mx-auto">
             <UploadInput
@@ -136,7 +136,7 @@ export default function Home() {
               disabled={!user}
             />
             {!user && (
-              <div className="text-center text-gray-500 border border-dashed border-gray-300 rounded p-4 mt-4">
+              <div className="text-center text-secondary-500 dark:text-secondary-400 border border-dashed border-secondary-300 dark:border-secondary-700 rounded p-4 mt-4">
                 Inicia sesión o crea una cuenta para usar el generador de resúmenes.
               </div>
             )}
@@ -150,44 +150,44 @@ export default function Home() {
       </section>
 
       {/* Cómo funciona */}
-      <section id="how-it-works" className="py-16 bg-gray-50">
+      <section id="how-it-works" className="py-16 bg-secondary-50 dark:bg-secondary-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-extrabold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-extrabold text-secondary-900 dark:text-white text-center mb-12">
             Cómo funciona
           </h2>
           <div className="mt-10">
             <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
               <div className="text-center">
-                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-md bg-primary/10 text-primary">
+                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-md bg-primary-500/10 text-primary-500">
                   <LinkIcon className="h-6 w-6" aria-hidden="true" />
                 </div>
                 <div className="mt-5">
-                  <h3 className="text-lg font-medium text-gray-900">1. Copia el link de tu grabación</h3>
-                  <p className="mt-2 text-base text-gray-500">
+                  <h3 className="text-lg font-medium text-secondary-900 dark:text-white">1. Copia el link de tu grabación</h3>
+                  <p className="mt-2 text-base text-secondary-600 dark:text-secondary-400">
                     Obtén el enlace de tu video de Zoom, Google Meet, Loom o cualquier otra plataforma.
                   </p>
                 </div>
               </div>
 
               <div className="text-center">
-                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-md bg-primary/10 text-primary">
+                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-md bg-primary-500/10 text-primary-500">
                   <SparklesIcon className="h-6 w-6" aria-hidden="true" />
                 </div>
                 <div className="mt-5">
-                  <h3 className="text-lg font-medium text-gray-900">2. Pégalo en ClipNotes</h3>
-                  <p className="mt-2 text-base text-gray-500">
+                  <h3 className="text-lg font-medium text-secondary-900 dark:text-white">2. Pégalo en ClipNotes</h3>
+                  <p className="mt-2 text-base text-secondary-600 dark:text-secondary-400">
                     Nuestra IA procesará automáticamente el video y extraerá la información clave.
                   </p>
                 </div>
               </div>
 
               <div className="text-center">
-                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-md bg-primary/10 text-primary">
+                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-md bg-primary-500/10 text-primary-500">
                   <DocumentCheckIcon className="h-6 w-6" aria-hidden="true" />
                 </div>
                 <div className="mt-5">
-                  <h3 className="text-lg font-medium text-gray-900">3. Obtén tu transcripción y resumen</h3>
-                  <p className="mt-2 text-base text-gray-500">
+                  <h3 className="text-lg font-medium text-secondary-900 dark:text-white">3. Obtén tu transcripción y resumen</h3>
+                  <p className="mt-2 text-base text-secondary-600 dark:text-secondary-400">
                     Recibe una transcripción completa y un resumen con los puntos clave y acciones.
                   </p>
                 </div>
@@ -198,77 +198,77 @@ export default function Home() {
       </section>
 
       {/* Precios */}
-      <section id="pricing" className="py-16 bg-white">
+      <section id="pricing" className="py-16 bg-secondary-50 dark:bg-secondary-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-extrabold text-secondary-900 dark:text-white sm:text-4xl">
               Planes y precios
             </h2>
-            <p className="mt-4 text-xl text-gray-500">
+            <p className="mt-4 text-xl text-secondary-600 dark:text-secondary-400">
               Elige el plan que se adapta a tus necesidades. Sin plan gratis, sin sorpresas.
             </p>
           </div>
 
           <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0">
-            <div className="border-2 border-yellow-500 rounded-lg shadow-sm divide-y divide-gray-200">
+            <div className="border-2 border-warning-500 rounded-lg shadow-soft bg-white/80 dark:bg-secondary-900/60 backdrop-blur divide-y divide-secondary-200 dark:divide-secondary-800">
               <div className="p-6">
-                <h2 className="text-lg leading-6 font-medium text-gray-900">Básico</h2>
+                <h2 className="text-lg leading-6 font-medium text-secondary-900 dark:text-white">Básico</h2>
                 <p className="mt-4">
-                  <span className="text-4xl font-extrabold text-gray-900">$5</span>
-                  <span className="text-base font-medium text-gray-500">/mes</span>
+                  <span className="text-4xl font-extrabold text-secondary-900 dark:text-white">$5</span>
+                  <span className="text-base font-medium text-secondary-600 dark:text-secondary-400">/mes</span>
                 </p>
-                <p className="mt-4 text-sm text-gray-500">
+                <p className="mt-4 text-sm text-secondary-600 dark:text-secondary-400">
                   60 minutos de procesamiento al mes.
                 </p>
                 <button
-                  className="mt-8 block w-full bg-yellow-500 border border-yellow-500 rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-yellow-600"
+                  className="mt-8 block w-full bg-warning-500 border border-warning-500 rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-warning-600"
                   onClick={() => setShowPaypal('basic')}
                 >
                   Elegir Básico
                 </button>
               </div>
               <div className="pt-6 pb-8 px-6">
-                <h3 className="text-xs font-medium text-gray-900 tracking-wide uppercase">Incluye</h3>
+                <h3 className="text-xs font-medium text-secondary-900 dark:text-white tracking-wide uppercase">Incluye</h3>
                 <ul className="mt-6 space-y-4">
                   <li className="flex items-start">
                     <div className="flex-shrink-0">
-                      <CheckCircleIcon className="h-5 w-5 text-green-500" aria-hidden="true" />
+                      <CheckCircleIcon className="h-5 w-5 text-success-500" aria-hidden="true" />
                     </div>
-                    <p className="ml-3 text-base text-gray-700">60 minutos de procesamiento/mes</p>
+                    <p className="ml-3 text-base text-secondary-700 dark:text-secondary-300">60 minutos de procesamiento/mes</p>
                   </li>
                   <li className="flex items-start">
                     <div className="flex-shrink-0">
-                      <CheckCircleIcon className="h-5 w-5 text-green-500" aria-hidden="true" />
+                      <CheckCircleIcon className="h-5 w-5 text-success-500" aria-hidden="true" />
                     </div>
-                    <p className="ml-3 text-base text-gray-700">Resúmenes con IA</p>
+                    <p className="ml-3 text-base text-secondary-700 dark:text-secondary-300">Resúmenes con IA</p>
                   </li>
                   <li className="flex items-start">
                     <div className="flex-shrink-0">
-                      <CheckCircleIcon className="h-5 w-5 text-green-500" aria-hidden="true" />
+                      <CheckCircleIcon className="h-5 w-5 text-success-500" aria-hidden="true" />
                     </div>
-                    <p className="ml-3 text-base text-gray-700">Historial de 30 días</p>
+                    <p className="ml-3 text-base text-secondary-700 dark:text-secondary-300">Historial de 30 días</p>
                   </li>
                 </ul>
               </div>
             </div>
 
-            <div className="border-2 border-primary rounded-lg shadow-sm divide-y divide-gray-200">
+            <div className="border-2 border-primary-500 rounded-lg shadow-glow bg-white/80 dark:bg-secondary-900/60 backdrop-blur divide-y divide-secondary-200 dark:divide-secondary-800">
               <div className="p-6">
                 <div className="flex justify-between items-center">
-                  <h2 className="text-lg leading-6 font-medium text-gray-900">Pro</h2>
-                  <p className="bg-primary/10 text-primary text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                  <h2 className="text-lg leading-6 font-medium text-secondary-900 dark:text-white">Pro</h2>
+                  <p className="bg-primary-500/10 text-primary-500 text-xs font-semibold px-2.5 py-0.5 rounded-full">
                     Popular
                   </p>
                 </div>
                 <p className="mt-4">
-                  <span className="text-4xl font-extrabold text-gray-900">$19</span>
-                  <span className="text-base font-medium text-gray-500">/mes</span>
+                  <span className="text-4xl font-extrabold text-secondary-900 dark:text-white">$19</span>
+                  <span className="text-base font-medium text-secondary-600 dark:text-secondary-400">/mes</span>
                 </p>
-                <p className="mt-4 text-sm text-gray-500">
+                <p className="mt-4 text-sm text-secondary-600 dark:text-secondary-400">
                   300 minutos de procesamiento al mes.
                 </p>
                 <button
-                  className="mt-8 block w-full bg-primary border border-transparent rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-primary/90"
+                  className="mt-8 block w-full bg-primary-500 border border-transparent rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-primary-600"
                   onClick={() => setShowPaypal('pro')}
                 >
                   Elegir Pro
@@ -276,14 +276,14 @@ export default function Home() {
       {/* Modal PayPal */}
       {showPaypal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full relative">
+          <div className="bg-white dark:bg-secondary-900 rounded-lg shadow-soft-lg p-8 max-w-md w-full relative border border-secondary-200/60 dark:border-secondary-800/60">
             <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl"
+              className="absolute top-2 right-2 text-secondary-400 hover:text-secondary-700 dark:hover:text-secondary-200 text-xl"
               onClick={() => setShowPaypal(null)}
             >
               ×
             </button>
-            <h3 className="text-lg font-bold mb-4 text-center">Completa tu suscripción</h3>
+            <h3 className="text-lg font-bold mb-4 text-center text-secondary-900 dark:text-white">Completa tu suscripción</h3>
             {showPaypal === 'basic' && (
               <PaypalSubscribeButton
                 planId="P-33L930430F322933SNCZN4IQ" // Plan Básico real
@@ -301,31 +301,31 @@ export default function Home() {
       )}
               </div>
               <div className="pt-6 pb-8 px-6">
-                <h3 className="text-xs font-medium text-gray-900 tracking-wide uppercase">Incluye</h3>
+                <h3 className="text-xs font-medium text-secondary-900 dark:text-white tracking-wide uppercase">Incluye</h3>
                 <ul className="mt-6 space-y-4">
                   <li className="flex items-start">
                     <div className="flex-shrink-0">
-                      <CheckCircleIcon className="h-5 w-5 text-green-500" aria-hidden="true" />
+                      <CheckCircleIcon className="h-5 w-5 text-success-500" aria-hidden="true" />
                     </div>
-                    <p className="ml-3 text-base text-gray-700">300 minutos de procesamiento/mes</p>
+                    <p className="ml-3 text-base text-secondary-700 dark:text-secondary-300">300 minutos de procesamiento/mes</p>
                   </li>
                   <li className="flex items-start">
                     <div className="flex-shrink-0">
-                      <CheckCircleIcon className="h-5 w-5 text-green-500" aria-hidden="true" />
+                      <CheckCircleIcon className="h-5 w-5 text-success-500" aria-hidden="true" />
                     </div>
-                    <p className="ml-3 text-base text-gray-700">Resúmenes avanzados con IA</p>
+                    <p className="ml-3 text-base text-secondary-700 dark:text-secondary-300">Resúmenes avanzados con IA</p>
                   </li>
                   <li className="flex items-start">
                     <div className="flex-shrink-0">
-                      <CheckCircleIcon className="h-5 w-5 text-green-500" aria-hidden="true" />
+                      <CheckCircleIcon className="h-5 w-5 text-success-500" aria-hidden="true" />
                     </div>
-                    <p className="ml-3 text-base text-gray-700">Historial ilimitado</p>
+                    <p className="ml-3 text-base text-secondary-700 dark:text-secondary-300">Historial ilimitado</p>
                   </li>
                   <li className="flex items-start">
                     <div className="flex-shrink-0">
-                      <CheckCircleIcon className="h-5 w-5 text-green-500" aria-hidden="true" />
+                      <CheckCircleIcon className="h-5 w-5 text-success-500" aria-hidden="true" />
                     </div>
-                    <p className="ml-3 text-base text-gray-700">Soporte prioritario</p>
+                    <p className="ml-3 text-base text-secondary-700 dark:text-secondary-300">Soporte prioritario</p>
                   </li>
                 </ul>
               </div>
@@ -335,13 +335,13 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="py-16 bg-gray-50">
+      <section id="faq" className="py-16 bg-secondary-50 dark:bg-secondary-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="lg:text-center">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-extrabold text-secondary-900 dark:text-white sm:text-4xl">
               Preguntas frecuentes
             </h2>
-            <p className="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto">
+            <p className="mt-4 max-w-2xl text-xl text-secondary-600 dark:text-secondary-400 lg:mx-auto">
               ¿Tienes alguna pregunta? Aquí están las respuestas a las preguntas más comunes.
             </p>
           </div>
@@ -349,37 +349,37 @@ export default function Home() {
           <div className="mt-12">
             <dl className="space-y-10 md:space-y-0 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-12">
               <div>
-                <dt className="text-lg font-medium text-gray-900">
+                <dt className="text-lg font-medium text-secondary-900 dark:text-white">
                   ¿Qué plataformas de video son compatibles?
                 </dt>
-                <dd className="mt-2 text-base text-gray-500">
+                <dd className="mt-2 text-base text-secondary-600 dark:text-secondary-400">
                   ClipNotes funciona con enlaces públicos de Zoom, Google Meet, Loom, YouTube y la mayoría de plataformas de video. Si tu plataforma no está en la lista, ¡avísanos!
                 </dd>
               </div>
 
               <div>
-                <dt className="text-lg font-medium text-gray-900">
+                <dt className="text-lg font-medium text-secondary-900 dark:text-white">
                   ¿Cómo se maneja la privacidad de mis videos?
                 </dt>
-                <dd className="mt-2 text-base text-gray-500">
+                <dd className="mt-2 text-base text-secondary-600 dark:text-secondary-400">
                   Tomamos tu privacidad muy en serio. Los videos se procesan de forma segura y se eliminan de nuestros servidores una vez generada la transcripción. No compartimos tu información con terceros.
                 </dd>
               </div>
 
               <div>
-                <dt className="text-lg font-medium text-gray-900">
+                <dt className="text-lg font-medium text-secondary-900 dark:text-white">
                   ¿Qué tan precisas son las transcripciones?
                 </dt>
-                <dd className="mt-2 text-base text-gray-900">
+                <dd className="mt-2 text-base text-secondary-900 dark:text-secondary-300">
                   Nuestro sistema de IA ofrece una precisión de aproximadamente 95-98% en condiciones ideales. La calidad del audio, los acentos fuertes o el ruido de fondo pueden afectar la precisión.
                 </dd>
               </div>
 
               <div>
-                <dt className="text-lg font-medium text-gray-900">
+                <dt className="text-lg font-medium text-secondary-900 dark:text-white">
                   ¿Puedo probar el servicio antes de pagar?
                 </dt>
-                <dd className="mt-2 text-base text-gray-500">
+                <dd className="mt-2 text-base text-secondary-600 dark:text-secondary-400">
                   ¡Claro! Ofrecemos un plan gratuito con 30 minutos de procesamiento al mes. Puedes probar todas las funciones sin necesidad de tarjeta de crédito.
                 </dd>
               </div>

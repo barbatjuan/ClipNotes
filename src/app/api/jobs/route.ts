@@ -8,8 +8,8 @@ const supabase = createClient(
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { url, fileName } = body;
+  const body = await req.json();
+  const { url, title } = body;
     const authHeader = req.headers.get('authorization');
     const token = authHeader?.replace('Bearer ', '');
     if (!token) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
       {
         user_id: user.id,
         input_url: url,
+        title: title || null,
         status: 'pending',
         audio_duration: null,
         raw_transcription: null,

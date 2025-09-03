@@ -35,32 +35,32 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white shadow-sm">
+    <header className="sticky top-0 z-40 bg-white/70 dark:bg-secondary-950/60 backdrop-blur-md border-b border-secondary-200/60 dark:border-secondary-800/60">
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Top">
-        <div className="flex h-16 items-center justify-between border-b border-gray-200">
+        <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <span className="text-xl font-bold text-primary">ClipNotes</span>
+              <span className="text-xl font-bold text-primary-600 dark:text-primary-400 tracking-tight">ClipNotes</span>
             </Link>
             {!user && (
               <div className="hidden ml-10 space-x-8 lg:block">
-                <Link href="/#features" className="text-base font-medium text-gray-500 hover:text-gray-900">
+                <Link href="/#features" className="text-sm font-medium text-secondary-600 hover:text-secondary-900 dark:text-secondary-300 dark:hover:text-white">
                   Cómo funciona
                 </Link>
-                <Link href="/#pricing" className="ml-8 text-base font-medium text-gray-500 hover:text-gray-900">
+                <Link href="/#pricing" className="ml-8 text-sm font-medium text-secondary-600 hover:text-secondary-900 dark:text-secondary-300 dark:hover:text-white">
                   Precios
                 </Link>
-                <Link href="/#faq" className="ml-8 text-base font-medium text-gray-500 hover:text-gray-900">
+                <Link href="/#faq" className="ml-8 text-sm font-medium text-secondary-600 hover:text-secondary-900 dark:text-secondary-300 dark:hover:text-white">
                   Preguntas Frecuentes
                 </Link>
               </div>
             )}
           </div>
-          <div className="ml-10 space-x-4">
+          <div className="ml-10 space-x-3">
             {user ? (
               <button
                 onClick={handleLogout}
-                className="inline-block rounded-md border border-transparent bg-red-500 py-2 px-4 text-base font-medium text-white hover:bg-red-600"
+                className="btn btn-danger"
               >
                 Cerrar sesión
               </button>
@@ -68,13 +68,13 @@ export default function Header() {
               <>
                 <button
                   onClick={() => setShowAuth(true)}
-                  className="inline-block rounded-md border border-transparent bg-primary py-2 px-4 text-base font-medium text-white hover:bg-primary/90"
+                  className="btn btn-primary"
                 >
                   Acceder
                 </button>
                 <button
                   onClick={() => setShowAuth(true)}
-                  className="inline-block rounded-md border border-primary bg-white py-2 px-4 text-base font-medium text-primary hover:bg-gray-100 hover:border-primary ml-2"
+                  className="btn btn-secondary"
                 >
                   Registrarse
                 </button>

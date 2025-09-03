@@ -7,13 +7,13 @@ interface SummaryProps {
 }
 
 export const SummaryDisplay: React.FC<SummaryProps> = ({ summary, todoList, notes }) => (
-  <div className="mt-6 p-4 border rounded bg-white shadow">
+  <div className="summary-content mt-6 p-4 border rounded bg-white shadow">
     <h2 className="text-lg font-bold mb-2">Resumen</h2>
     <p className="mb-4 whitespace-pre-line">{summary}</p>
     {todoList && todoList.length > 0 && (
       <div className="mb-4">
         <h3 className="font-semibold">To-Do List</h3>
-        <ul className="list-disc ml-6">
+  <ul className="summary-list list-disc ml-6">
           {todoList.map((item, idx) => (
             <li key={idx}>{item}</li>
           ))}

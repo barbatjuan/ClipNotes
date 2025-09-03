@@ -94,7 +94,8 @@ async function transcribeAudio(filePath) {
 }
 
 async function summarizeText(text) {
-  const prompt = `Resume el siguiente texto en español siguiendo estas instrucciones:\n\n- Extrae los puntos clave de forma clara y concisa, usando viñetas.\n- Si hay acciones o pasos, enuméralos en una sección separada llamada "Acciones recomendadas".\n- Si hay conclusiones, resáltalas en una sección final llamada "Conclusiones".\n- Si se mencionan problemas, errores o advertencias, crea una sección llamada "Alertas" o "Riesgos".\n- Usa títulos y subtítulos para separar cada sección.\n- El resumen debe ser útil para alguien que no participó en la reunión o no leyó el texto original.\n- Sé profesional, directo y evita redundancias.\n\nTexto:\n${text}`;
+  // Prompt para resumen en texto plano profesional, con título grande y negrita, y subtítulos destacados en negrita
+  const prompt = `Resume el siguiente texto en español siguiendo estas instrucciones:\n\n- El resumen debe iniciar con un título principal en la primera línea, usando formato Markdown: una línea con # (almohadilla) y el título en negrita (por ejemplo: # **Resumen Ejecutivo**).\n- Cada sección debe tener un subtítulo en negrita, usando doble asterisco (por ejemplo: **Puntos Clave**).\n- Extrae los puntos clave de forma clara y concisa, usando viñetas o numeración.\n- Si hay acciones o pasos, enuméralos en una sección separada llamada **Acciones Recomendadas**.\n- Si hay conclusiones, resáltalas en una sección final llamada **Conclusiones**.\n- Si se mencionan problemas, errores o advertencias, crea una sección llamada **Alertas** o **Riesgos**.\n- Usa títulos y subtítulos para separar cada sección.\n- El resumen debe ser útil para alguien que no participó en la reunión o no leyó el texto original.\n- Sé profesional, directo y evita redundancias.\n\nTexto:\n${text}`;
   const resp = await openai.chat.completions.create({
     model: 'gpt-4o',
     messages: [
@@ -104,7 +105,8 @@ async function summarizeText(text) {
     max_tokens: 800,
     temperature: 0.4,
   });
-  return resp.choices[0].message.content.trim();
+  const summary = resp.choices[0].message.content.trim();
+  return { summary };
 }
 
 async function processJob() {
@@ -143,7 +145,8 @@ async function processJob() {
     let summary;
     try {
       console.log('Resumiendo transcripción...');
-      summary = await summarizeText(transcription);
+      const res = await summarizeText(transcription);
+      summary = res.summary;
       await updateJob(job.id, { progress: 90, updated_at: new Date().toISOString() });
       console.log('Resumen completado.');
     } catch (e) {
@@ -158,6 +161,7 @@ async function processJob() {
         status: 'completed',
         raw_transcription: transcription,
         ai_summary: summary,
+        ai_summary_html: null,
         progress: 100,
         updated_at: new Date().toISOString(),
         error_message: null,

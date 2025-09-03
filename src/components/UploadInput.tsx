@@ -31,44 +31,45 @@ export const UploadInput: React.FC<UploadProps> = ({ onUpload, onPasteLink, load
   };
 
   return (
-    <div className="flex flex-col gap-4 w-full max-w-md mx-auto">
-      <label className="block text-sm font-medium">Sube un archivo de audio/video</label>
-      {showTitleInput && (
-        <input
-          type="text"
-          placeholder="Título del archivo (opcional)"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          className="border rounded px-3 py-2 mb-1"
-          aria-label="Título del archivo"
-          disabled={disabled}
-        />
+    <div className="w-full">
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-semibold mb-3 text-secondary-700 dark:text-secondary-200">Pegar enlace de video</label>
+          <form onSubmit={handlePasteLink} className="flex gap-3">
+            {showTitleInput && (
+              <input
+                type="text"
+                placeholder="Título del resumen (opcional)"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                className="input w-80"
+                aria-label="Título del resumen"
+                disabled={disabled}
+              />
+            )}
+            <input
+              type="url"
+              placeholder="YouTube, Vimeo, Loom, etc."
+              value={url}
+              onChange={e => setUrl(e.target.value)}
+              className="flex-1 input"
+              aria-label="Pegar link"
+              disabled={disabled}
+            />
+            <button type="submit" className="btn btn-primary whitespace-nowrap" disabled={loading || disabled}>
+              {loading ? 'Procesando...' : 'Resumir'}
+            </button>
+          </form>
+        </div>
+      </div>
+      
+      {/* Mensajes de estado */}
+      {(error || success) && (
+        <div className="mt-4 text-center">
+          {error && <div className="text-danger-600 dark:text-danger-400 text-sm font-medium">{error}</div>}
+          {success && <div className="text-success-700 dark:text-success-400 text-sm font-medium">{success}</div>}
+        </div>
       )}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="audio/*,video/*"
-        className="file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-indigo-700"
-        onChange={handleFileChange}
-        aria-label="Subir archivo"
-        disabled={disabled}
-      />
-      <form onSubmit={handlePasteLink} className="flex gap-2">
-        <input
-          type="url"
-          placeholder="Pega un link de YouTube, Vimeo, etc."
-          value={url}
-          onChange={e => setUrl(e.target.value)}
-          className="flex-1 border rounded px-3 py-2"
-          aria-label="Pegar link"
-          disabled={disabled}
-        />
-        <button type="submit" className="bg-primary text-white px-4 py-2 rounded" disabled={loading || disabled}>
-          {loading ? 'Procesando...' : 'Resumir'}
-        </button>
-      </form>
-      {error && <div className="text-red-500 text-sm">{error}</div>}
-      {success && <div className="text-green-600 text-sm">{success}</div>}
     </div>
   );
 };
