@@ -7,7 +7,7 @@ interface SidebarProps {
   onSelectJob: (jobId: string) => void;
   onSettings: () => void;
   onLogout: () => void;
-  onNavigate: (section: 'dashboard' | 'history' | 'stats') => void;
+  onNavigate: (section: 'dashboard' | 'history' | 'stats' | 'settings') => void;
   user: any;
   activeSection: string;
   activeJobId?: string;
@@ -111,6 +111,7 @@ export default function Sidebar({ jobs, onSelectJob, onSettings, onLogout, onNav
               <div className="ml-auto w-2 h-2 bg-primary-400 rounded-full"></div>
             )}
           </button>
+
           
           <div>
             <button

@@ -19,8 +19,8 @@ export async function POST(req: NextRequest) {
     const user = userData.user;
     if (!subscriptionId) return NextResponse.json({ error: 'Falta subscriptionId' }, { status: 400 });
     // Validar planTier y definir límites de minutos
-    const validTiers = ['pro', 'starter', 'free', 'owner', 'no_cost'];
-    const tier = validTiers.includes(planTier) ? planTier : 'pro';
+    const validTiers = ['premium', 'starter', 'free', 'owner', 'no_cost', 'enterprise'];
+    const tier = validTiers.includes(planTier) ? planTier : 'premium';
     
     // Definir límites de minutos según el plan
     let monthlyMinutesLimit = 60; // default for starter
@@ -31,8 +31,11 @@ export async function POST(req: NextRequest) {
       case 'starter':
         monthlyMinutesLimit = 60;
         break;
-      case 'pro':
+      case 'premium':
         monthlyMinutesLimit = 300;
+        break;
+      case 'enterprise':
+        monthlyMinutesLimit = 600;
         break;
       case 'owner':
       case 'no_cost':

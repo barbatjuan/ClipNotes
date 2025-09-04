@@ -4,31 +4,27 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import Sidebar from "@/components/layout/Sidebar";
-import { getUserJobs } from "@/lib/supabase/jobs";
+import { useJobs } from "@/contexts/JobsContext";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { jobs } = useJobs();
 
   const showShell = useMemo(() => {
     return pathname?.startsWith("/dashboard") || pathname?.startsWith("/jobs");
   }, [pathname]);
 
   const [user, setUser] = useState<any>(null);
-  const [jobs, setJobs] = useState<any[]>([]);
-  const [activeSection, setActiveSection] = useState<"dashboard" | "history" | "stats">("dashboard");
+  const [activeSection, setActiveSection] = useState<"dashboard" | "history" | "stats" | "settings">("dashboard");
 
-  // Load user + jobs once
+  // Load user once
   useEffect(() => {
     const load = async () => {
       const { data } = await supabase.auth.getSession();
       const u = data.session?.user ?? null;
       setUser(u);
-      if (u) {
-        const list = await getUserJobs(u.id);
-        setJobs(list);
-      }
     };
     if (showShell) load();
   }, [showShell]);
@@ -37,7 +33,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!showShell) return;
     const section = searchParams?.get("section");
-    if (section === "history" || section === "stats" || section === "dashboard") {
+    if (section === "history" || section === "stats" || section === "dashboard" || section === "settings") {
       setActiveSection(section);
     } else {
       setActiveSection("dashboard");
@@ -51,7 +47,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <Sidebar
         jobs={jobs}
         onSelectJob={(jid: string) => router.push(`/jobs/${jid}`)}
-        onSettings={() => router.push("/dashboard")}
+        onSettings={() => router.push("/dashboard?section=settings")}
         onLogout={async () => {
           await supabase.auth.signOut();
           window.location.href = "/";
@@ -59,6 +55,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         onNavigate={(section) => {
           if (section === "stats") return router.push("/dashboard?section=stats");
           if (section === "history") return router.push("/dashboard?section=history");
+          if (section === "settings") return router.push("/dashboard?section=settings");
           return router.push("/dashboard");
         }}
         user={user}

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useJobs } from "@/contexts/JobsContext";
 import { getUserJobs } from "@/lib/supabase/jobs";
 import { CheckCircleIcon, ClockIcon, XCircleIcon, ClipboardIcon, TrashIcon, ArrowDownTrayIcon, LinkIcon } from "@heroicons/react/24/outline";
 import EditableJobCard from "./EditableJobCard";
@@ -19,30 +20,44 @@ import { LimitExceededModal } from "@/components/LimitExceededModal";
 export default function Dashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { jobs, refreshJobs } = useJobs();
   const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<{error?: string, success?: string, loading?: boolean}>({});
-  const [selectedPlan, setSelectedPlan] = useState<'starter' | 'pro'>('starter');
-  const [activeSection, setActiveSection] = useState<'dashboard' | 'history' | 'stats'>('dashboard');
+  const [selectedPlan, setSelectedPlan] = useState<'starter' | 'premium' | 'enterprise'>('starter');
+  const [activeSection, setActiveSection] = useState<'dashboard' | 'history' | 'stats' | 'settings'>('dashboard');
   const [summaryStyle, setSummaryStyle] = useState<'ejecutivo' | 'tecnico' | 'amigable'>('ejecutivo');
+  const [profileForm, setProfileForm] = useState({
+    full_name: '',
+    email: '',
+    language: 'es',
+    default_summary_style: 'ejecutivo'
+  });
   const [profileRefreshKey, setProfileRefreshKey] = useState(0);
   const [limitModal, setLimitModal] = useState<{
     isOpen: boolean;
     videoDuration: number;
     remainingMinutes: number;
   }>({ isOpen: false, videoDuration: 0, remainingMinutes: 0 });
+  const [cancelModal, setCancelModal] = useState(false);
 
 
   // Función para refrescar perfil
   const refreshProfile = useCallback(async () => {
     if (!user) return;
-    const { data: profile } = await supabase
+    const { data: profile, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('user_id', user.id)
       .single();
+    
+    if (error) {
+      console.error('Error al cargar perfil:', error);
+      return;
+    }
+    
+    console.log('Perfil actualizado:', profile); // Debug
     setUserProfile(profile);
   }, [user]);
 
@@ -85,7 +100,7 @@ export default function Dashboard() {
   useEffect(() => {
     const section = searchParams?.get('section');
     console.log('🔄 URL changed, section param:', section);
-    if (section === 'history' || section === 'stats') {
+    if (section === 'history' || section === 'stats' || section === 'settings') {
       console.log('✅ Setting activeSection to:', section);
       setActiveSection(section);
     } else {
@@ -109,9 +124,16 @@ export default function Dashboard() {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Error al guardar la suscripción');
+        
+        console.log('Respuesta API subscribe:', data); // Debug
+        console.log('Plan seleccionado:', selectedPlan); // Debug
+        
         setFeedback({ success: '¡Suscripción activada! Los cambios se han aplicado.' });
-        // Recargar perfil inmediatamente
-        await refreshProfile();
+        // Recargar perfil inmediatamente - forzar refresh
+        setProfileRefreshKey(prev => prev + 1);
+        setTimeout(async () => {
+          await refreshProfile();
+        }, 1000);
       } catch (e: any) {
         setFeedback({ error: e.message || 'Ocurrió un error al guardar la suscripción.' });
       } finally {
@@ -121,48 +143,99 @@ export default function Dashboard() {
     [user, selectedPlan, refreshProfile]
   );
 
-  const fetchJobs = async (uid: string) => {
-    setLoading(true);
+  // Cargar datos del formulario de perfil
+  useEffect(() => {
+    if (user && userProfile) {
+      setProfileForm({
+        full_name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || '',
+        email: user?.email || '',
+        language: userProfile?.language || 'es',
+        default_summary_style: userProfile?.default_summary_style || 'ejecutivo'
+      });
+      setSummaryStyle(userProfile?.default_summary_style || 'ejecutivo');
+    }
+  }, [user, userProfile]);
+
+  // Función para actualizar perfil
+  const handleUpdateProfile = async () => {
+    setFeedback({ loading: true });
     try {
-      const jobs = await getUserJobs(uid);
-      setJobs(jobs);
-      // Refrescar perfil para estadísticas actualizadas
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', uid)
-        .single();
-      setUserProfile(profile);
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      console.log('Datos a enviar:', profileForm); // Debug
+      const res = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(profileForm),
+      });
+      const data = await res.json();
+      console.log('Respuesta del servidor:', { status: res.status, data }); // Debug
+      if (!res.ok) throw new Error(data.error || 'Error al actualizar perfil');
+      
+      setFeedback({ success: data.message || 'Perfil actualizado correctamente' });
+      // Actualizar summaryStyle si se cambió el estilo por defecto
+      if (profileForm.default_summary_style) {
+        setSummaryStyle(profileForm.default_summary_style as 'ejecutivo' | 'tecnico' | 'amigable');
+      }
+      await refreshProfile();
+    } catch (e: any) {
+      setFeedback({ error: e.message || 'Ocurrió un error al actualizar el perfil.' });
     } finally {
-      setLoading(false);
+      setFeedback(f => ({ ...f, loading: false }));
     }
   };
 
+  // Función para cancelar suscripción
+  const handleCancelSubscription = async () => {
+    setFeedback({ loading: true });
+    try {
+      // Actualizar a plan free en la base de datos
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ 
+          subscriptionId: 'CANCELLED_' + Date.now(), 
+          planTier: 'free' 
+        }),
+      });
+      
+      if (!res.ok) throw new Error('Error al cancelar suscripción');
+      
+      setFeedback({ success: 'Suscripción cancelada. Ahora tienes el plan gratuito.' });
+      await refreshProfile();
+      setCancelModal(false);
+    } catch (e: any) {
+      setFeedback({ error: e.message || 'Ocurrió un error al cancelar la suscripción.' });
+    } finally {
+      setFeedback(f => ({ ...f, loading: false }));
+    }
+  };
 
-  // Cargar jobs inicial
+  // Refrescar perfil cuando cambien los jobs
   useEffect(() => {
-    if (!user) return;
-    fetchJobs(user.id);
-  }, [user]);
-
-  // Polling automático para refrescar jobs cada 5s si hay jobs en proceso
-  useEffect(() => {
-    if (!user) return;
-    
-    const interval = setInterval(() => {
-      // Solo hacer polling si hay jobs en proceso
-      if (jobs.some(j => j.status === 'pending' || j.status === 'processing')) {
-        fetchJobs(user.id);
-      }
-    }, 5000);
-    
-    return () => clearInterval(interval);
-  }, [user, jobs.filter(j => j.status === 'pending' || j.status === 'processing').length]);
+    const updateProfile = async () => {
+      if (!user) return;
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      setUserProfile(profile);
+      setLoading(false);
+    };
+    updateProfile();
+  }, [user, jobs]);
   // Eliminar job
   const handleDeleteJob = async (jobId: string) => {
     if (!confirm('¿Seguro que quieres eliminar este resumen?')) return;
     await supabase.from('jobs').delete().eq('id', jobId);
-    fetchJobs(user.id);
+    await refreshJobs();
   };
 
   // Descargar resumen/transcripción en PDF
@@ -250,7 +323,7 @@ export default function Dashboard() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al encolar el resumen');
       setFeedback({ success: `¡Tu video está encolado! (${durationMinutes} min) El resumen aparecerá aquí cuando esté listo.` });
-      fetchJobs(user.id);
+      await refreshJobs();
     } catch (e: any) {
       setFeedback({ error: e.message || 'Ocurrió un error al procesar el contenido.' });
     } finally {
@@ -373,6 +446,206 @@ export default function Dashboard() {
       );
     }
     
+    if (activeSection === 'settings') {
+      return (
+        <div className="animate-fade-in">
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">Ajustes</h1>
+            <p className="text-secondary-600 dark:text-secondary-300 text-lg leading-relaxed">Personaliza tu perfil y gestiona tu suscripción</p>
+          </div>
+          
+          <div className="space-y-8">
+            {/* Información del perfil */}
+            <div className="card-hover">
+              <div className="p-6 border-b border-secondary-200 dark:border-secondary-700">
+                <h2 className="text-xl font-semibold text-secondary-900 dark:text-white mb-2">Información Personal</h2>
+                <p className="text-secondary-600 dark:text-secondary-400">Actualiza tus datos básicos</p>
+              </div>
+              <div className="p-6 space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
+                    Nombre completo
+                  </label>
+                  <input
+                    type="text"
+                    className="input w-full max-w-md"
+                    value={profileForm.full_name}
+                    onChange={(e) => setProfileForm({...profileForm, full_name: e.target.value})}
+                    placeholder="Tu nombre completo"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
+                    Correo electrónico
+                  </label>
+                  <input
+                    type="email"
+                    className="input w-full max-w-md"
+                    value={profileForm.email}
+                    onChange={(e) => setProfileForm({...profileForm, email: e.target.value})}
+                    placeholder="tu@email.com"
+                  />
+                  <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-1">
+                    Cambiar el correo requiere verificación
+                  </p>
+                </div>
+                <button 
+                  className="btn btn-primary"
+                  onClick={handleUpdateProfile}
+                  disabled={feedback.loading}
+                >
+                  {feedback.loading ? 'Guardando...' : 'Guardar cambios'}
+                </button>
+              </div>
+            </div>
+
+            {/* Preferencias */}
+            <div className="card-hover">
+              <div className="p-6 border-b border-secondary-200 dark:border-secondary-700">
+                <h2 className="text-xl font-semibold text-secondary-900 dark:text-white mb-2">Preferencias</h2>
+                <p className="text-secondary-600 dark:text-secondary-400">Personaliza tu experiencia</p>
+              </div>
+              <div className="p-6 space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
+                    Idioma
+                  </label>
+                  <select 
+                    className="input w-full max-w-md"
+                    value={profileForm.language}
+                    onChange={(e) => setProfileForm({...profileForm, language: e.target.value})}
+                  >
+                    <option value="es">Español</option>
+                    <option value="en">English</option>
+                    <option value="fr">Français</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
+                    Estilo de resumen por defecto
+                  </label>
+                  <select 
+                    className="input w-full max-w-md"
+                    value={profileForm.default_summary_style}
+                    onChange={(e) => setProfileForm({...profileForm, default_summary_style: e.target.value})}
+                  >
+                    <option value="ejecutivo">Ejecutivo - Conciso y enfocado en decisiones</option>
+                    <option value="tecnico">Técnico - Detallado con términos específicos</option>
+                    <option value="amigable">Amigable - Lenguaje claro y accesible</option>
+                  </select>
+                </div>
+                <button 
+                  className="btn btn-primary"
+                  onClick={handleUpdateProfile}
+                  disabled={feedback.loading}
+                >
+                  {feedback.loading ? 'Guardando...' : 'Guardar preferencias'}
+                </button>
+              </div>
+            </div>
+
+            {/* Gestión de suscripción */}
+            <div className="card-hover">
+              <div className="p-6 border-b border-secondary-200 dark:border-secondary-700">
+                <h2 className="text-xl font-semibold text-secondary-900 dark:text-white mb-2">Suscripción</h2>
+                <p className="text-secondary-600 dark:text-secondary-400">Gestiona tu plan y facturación</p>
+              </div>
+              <div className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="font-medium text-secondary-900 dark:text-white mb-2">Plan actual</h3>
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="badge badge-primary text-sm font-semibold capitalize">
+                        {userProfile?.plan_tier || 'free'}
+                      </span>
+                      <span className="text-secondary-600 dark:text-secondary-300">
+                        {userProfile?.monthly_minutes_limit || 10} minutos/mes
+                      </span>
+                    </div>
+                    {userProfile?.paypal_subscription_id && (
+                      <p className="text-sm text-secondary-500 dark:text-secondary-400">
+                        ID de suscripción: {userProfile.paypal_subscription_id}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-secondary-900 dark:text-white mb-2">Uso actual</h3>
+                    <div className="text-2xl font-bold text-primary-600 mb-1">
+                      {userProfile ? Math.ceil((userProfile.minutes_processed_current_month || 0) / 60) : 0}
+                      <span className="text-sm text-secondary-500 dark:text-secondary-400 ml-1">
+                        / {userProfile?.monthly_minutes_limit || 10} min
+                      </span>
+                    </div>
+                    <div className="w-full bg-secondary-200 rounded-full h-2 mt-2">
+                      <div 
+                        className="bg-gradient-to-r from-primary-500 to-primary-600 h-2 rounded-full transition-all duration-500" 
+                        style={{ 
+                          width: `${userProfile ? Math.min(((userProfile.minutes_processed_current_month / 60) / userProfile.monthly_minutes_limit) * 100, 100) : 0}%` 
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  {userProfile?.plan_tier !== 'premium' && (
+                    <button 
+                      className="btn btn-primary"
+                      onClick={() => setSelectedPlan('premium')}
+                    >
+                      Actualizar a Premium
+                    </button>
+                  )}
+                  {userProfile?.plan_tier !== 'enterprise' && (
+                    <button 
+                      className="btn btn-secondary"
+                      onClick={() => setSelectedPlan('enterprise')}
+                    >
+                      Actualizar a Enterprise
+                    </button>
+                  )}
+                  {userProfile?.plan_tier !== 'free' && userProfile?.paypal_subscription_id && (
+                    <button 
+                      className="btn btn-danger"
+                      onClick={() => setCancelModal(true)}
+                      disabled={feedback.loading}
+                    >
+                      Cancelar suscripción
+                    </button>
+                  )}
+                </div>
+                
+                {/* PayPal Buttons if upgrade selected */}
+                {selectedPlan === 'premium' && userProfile?.plan_tier !== 'premium' && (
+                  <div className="p-4 bg-warning-50 dark:bg-warning-900/20 rounded-lg border border-warning-200 dark:border-warning-800">
+                    <h4 className="font-medium text-warning-800 dark:text-warning-200 mb-2">
+                      Actualizar a Premium ($19/mes - 300 minutos)
+                    </h4>
+                    <PaypalSubscribeButton
+                      planId="P-5X541101L03472358NCZN6VY"
+                      onApprove={handlePaypalApprove}
+                    />
+                  </div>
+                )}
+                
+                {selectedPlan === 'enterprise' && userProfile?.plan_tier !== 'enterprise' && (
+                  <div className="p-4 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
+                    <h4 className="font-medium text-primary-800 dark:text-primary-200 mb-2">
+                      Actualizar a Enterprise ($39/mes - 600 minutos)
+                    </h4>
+                    <PaypalSubscribeButton
+                      planId="P-69007670NR021894UNC4I6CI"
+                      onApprove={handlePaypalApprove}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
     if (activeSection === 'history') {
       return (
         <div className="animate-fade-in">
@@ -406,7 +679,7 @@ export default function Dashboard() {
               {jobs.map(job => (
                 <EditableJobCard key={job.id} job={job} onShare={handleShare} onDownloadPDF={handleDownloadPDF} onDelete={handleDeleteJob} onUpdateTitle={async (newTitle: string) => {
                   await supabase.from('jobs').update({ title: newTitle }).eq('id', job.id);
-                  fetchJobs(user.id);
+                  await refreshJobs();
                 }} />
               ))}
             </div>
@@ -453,8 +726,8 @@ export default function Dashboard() {
                   Starter: 60 min/mes
                 </button>
                 <button
-                  className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${selectedPlan === 'pro' ? 'bg-gradient-to-r from-warning-400 to-warning-500 text-white shadow-glow' : 'bg-secondary-50 dark:bg-secondary-900/60 text-secondary-700 dark:text-secondary-200 border border-secondary-300 dark:border-secondary-700 hover:bg-secondary-100 dark:hover:bg-secondary-800'}`}
-                  onClick={() => setSelectedPlan('pro')}
+                  className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${selectedPlan === 'premium' ? 'bg-gradient-to-r from-warning-400 to-warning-500 text-white shadow-glow' : 'bg-secondary-50 dark:bg-secondary-900/60 text-secondary-700 dark:text-secondary-200 border border-secondary-300 dark:border-secondary-700 hover:bg-secondary-100 dark:hover:bg-secondary-800'}`}
+                  onClick={() => setSelectedPlan('premium')}
                 >
                   Premium: 300 min/mes
                 </button>
@@ -466,7 +739,7 @@ export default function Dashboard() {
                     onApprove={handlePaypalApprove}
                   />
                 )}
-                {selectedPlan === 'pro' && (
+                {selectedPlan === 'premium' && (
                   <PaypalSubscribeButton
                     planId="P-5X541101L03472358NCZN6VY" // Reemplaza por tu planId real (plan pro)
                     onApprove={handlePaypalApprove}
@@ -524,8 +797,8 @@ export default function Dashboard() {
                         Starter: 60 min/mes
                       </button>
                       <button
-                        className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${selectedPlan === 'pro' ? 'bg-gradient-to-r from-warning-400 to-warning-500 text-white shadow-glow' : 'bg-secondary-50 dark:bg-secondary-900/60 text-secondary-700 dark:text-secondary-200 border border-secondary-300 dark:border-secondary-700 hover:bg-secondary-100 dark:hover:bg-secondary-800'}`}
-                        onClick={() => setSelectedPlan('pro')}
+                        className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${selectedPlan === 'premium' ? 'bg-gradient-to-r from-warning-400 to-warning-500 text-white shadow-glow' : 'bg-secondary-50 dark:bg-secondary-900/60 text-secondary-700 dark:text-secondary-200 border border-secondary-300 dark:border-secondary-700 hover:bg-secondary-100 dark:hover:bg-secondary-800'}`}
+                        onClick={() => setSelectedPlan('premium')}
                       >
                         Premium: 300 min/mes
                       </button>
@@ -534,7 +807,7 @@ export default function Dashboard() {
                   {userProfile.plan_tier === 'starter' && (
                     <button
                       className="px-6 py-3 rounded-xl font-semibold transition-all duration-200 bg-gradient-to-r from-warning-400 to-warning-500 text-white shadow-glow"
-                      onClick={() => setSelectedPlan('pro')}
+                      onClick={() => setSelectedPlan('premium')}
                     >
                       Actualizar a Premium: 300 min/mes
                     </button>
@@ -547,7 +820,7 @@ export default function Dashboard() {
                       onApprove={handlePaypalApprove}
                     />
                   )}
-                  {(userProfile.plan_tier === 'free' && selectedPlan === 'pro') || userProfile.plan_tier === 'starter' && (
+                  {(userProfile.plan_tier === 'free' && selectedPlan === 'premium') || userProfile.plan_tier === 'starter' && (
                     <PaypalSubscribeButton
                       planId="P-5X541101L03472358NCZN6VY"
                       onApprove={handlePaypalApprove}
@@ -736,17 +1009,60 @@ export default function Dashboard() {
       {renderContent()}
       
       {/* Modal de límite excedido */}
-      <LimitExceededModal
+      <LimitExceededModal 
         isOpen={limitModal.isOpen}
-        onClose={() => setLimitModal({ isOpen: false, videoDuration: 0, remainingMinutes: 0 })}
+        onClose={() => setLimitModal(prev => ({ ...prev, isOpen: false }))}
         videoDuration={limitModal.videoDuration}
         remainingMinutes={limitModal.remainingMinutes}
-        planTier={userProfile?.plan_tier || 'free'}
-        onUpgrade={async (subscriptionId: string) => {
-          await handlePaypalApprove(subscriptionId);
-          setLimitModal({ isOpen: false, videoDuration: 0, remainingMinutes: 0 });
+        currentPlan={userProfile?.plan_tier || 'free'}
+        onUpgrade={(plan) => {
+          setSelectedPlan(plan);
+          setLimitModal(prev => ({ ...prev, isOpen: false }));
         }}
       />
+
+      {/* Modal de confirmación para cancelar suscripción */}
+      {cancelModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-secondary-900 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 border border-secondary-200 dark:border-secondary-700">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 bg-danger-100 dark:bg-danger-900/30 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-danger-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-secondary-900 dark:text-white">Cancelar Suscripción</h3>
+                <p className="text-sm text-secondary-600 dark:text-secondary-400">Esta acción no se puede deshacer</p>
+              </div>
+            </div>
+            
+            <p className="text-secondary-700 dark:text-secondary-300 mb-6">
+              ¿Estás seguro de que quieres cancelar tu suscripción? Perderás el acceso a las funciones premium y volverás al plan gratuito.
+            </p>
+            
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setCancelModal(false)}
+                className="px-4 py-2 text-secondary-700 dark:text-secondary-300 bg-secondary-100 dark:bg-secondary-800 hover:bg-secondary-200 dark:hover:bg-secondary-700 rounded-lg transition-colors"
+                disabled={feedback.loading}
+              >
+                Mantener suscripción
+              </button>
+              <button
+                onClick={handleCancelSubscription}
+                className="px-4 py-2 bg-danger-500 hover:bg-danger-600 text-white rounded-lg transition-colors flex items-center gap-2"
+                disabled={feedback.loading}
+              >
+                {feedback.loading && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                )}
+                {feedback.loading ? 'Cancelando...' : 'Sí, cancelar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

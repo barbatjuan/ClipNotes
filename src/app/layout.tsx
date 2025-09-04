@@ -20,6 +20,7 @@ export const viewport: Viewport = {
 
 import DarkModeToggle from "@/components/DarkModeToggle";
 import AppShell from "@/components/layout/AppShell";
+import { JobsProvider } from "@/contexts/JobsContext";
 
 export default function RootLayout({
   children,
@@ -30,7 +31,9 @@ export default function RootLayout({
     <html lang="es" className="h-full" suppressHydrationWarning>
       <body className={`${inter.className} min-h-full`}>
         <DarkModeToggle />
-        <AppShell>{children}</AppShell>
+        <JobsProvider>
+          <AppShell>{children}</AppShell>
+        </JobsProvider>
       </body>
     </html>
   );

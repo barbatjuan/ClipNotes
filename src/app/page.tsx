@@ -213,7 +213,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-6 lg:max-w-5xl lg:mx-auto xl:max-w-none xl:mx-0">
+          <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-6 lg:max-w-4xl lg:mx-auto xl:max-w-none xl:mx-0 xl:grid-cols-4">
             {/* Plan Starter */}
             <div className="border border-secondary-300 rounded-lg shadow-soft bg-white/70 dark:bg-secondary-900/50 backdrop-blur divide-y divide-secondary-200 dark:divide-secondary-800">
               <div className="p-6">
@@ -315,7 +315,7 @@ export default function Home() {
               <div className="p-6">
                 <h2 className="text-lg leading-6 font-medium text-secondary-900 dark:text-white">Enterprise</h2>
                 <p className="mt-4">
-                  <span className="text-4xl font-extrabold text-secondary-900 dark:text-white">$39</span>
+                  <span className="text-4xl font-extrabold text-secondary-900 dark:text-white">$29</span>
                   <span className="text-base font-medium text-secondary-600 dark:text-secondary-400">/mes</span>
                 </p>
                 <p className="mt-4 text-sm text-secondary-600 dark:text-secondary-400">
@@ -368,6 +368,57 @@ export default function Home() {
                     <p className="ml-3 text-base text-secondary-700 dark:text-secondary-300">Envío de resúmenes por correo automático</p>
                   </li>
                 </ul>
+              </div>
+            </div>
+          </div>
+          
+          {/* Plan Gratuito - Banner Limpio */}
+          <div className="mt-16 pt-12 border-t border-secondary-200 dark:border-secondary-800">
+            <div className="bg-white dark:bg-secondary-900 rounded-xl border-2 border-dashed border-secondary-300 dark:border-secondary-600 p-8">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center mb-4">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 mr-4">
+                      ✨ Prueba gratuita
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-secondary-900 dark:text-white mb-3">
+                    Regístrate gratis y obtén 10 minutos de resúmenes
+                  </h3>
+                  <p className="text-secondary-600 dark:text-secondary-400 text-base mb-6">
+                    Sin tarjetas de crédito. Sin sorpresas. Solo regístrate y comienza a crear resúmenes al instante.
+                  </p>
+                  <div className="flex items-center space-x-8 text-secondary-500 dark:text-secondary-400">
+                    <span className="flex items-center text-sm">
+                      <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      Sin tarjeta
+                    </span>
+                    <span className="flex items-center text-sm">
+                      <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      Acceso inmediato
+                    </span>
+                    <span className="flex items-center text-sm">
+                      <svg className="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      Sin compromisos
+                    </span>
+                  </div>
+                </div>
+                <div className="ml-12">
+                  <button
+                    className="bg-secondary-900 hover:bg-secondary-800 dark:bg-white dark:hover:bg-secondary-100 text-white dark:text-secondary-900 font-semibold py-4 px-8 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl text-lg"
+                    onClick={() => {
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                  >
+                    Empezar gratis →
+                  </button>
+                </div>
               </div>
             </div>
           </div>
