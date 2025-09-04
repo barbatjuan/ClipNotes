@@ -22,7 +22,7 @@ export default function Home() {
   const [notes, setNotes] = useState('');
   const [user, setUser] = useState<any>(null);
   const feedback = useFeedback();
-  const [showPaypal, setShowPaypal] = useState<'basic' | 'pro' | 'enterprise' | null>(null);
+  const [showPaypal, setShowPaypal] = useState<'starter' | 'pro' | 'enterprise' | null>(null);
 
   // Detectar usuario autenticado
   useEffect(() => {
@@ -227,7 +227,7 @@ export default function Home() {
                 </p>
                 <button
                   className="mt-8 block w-full bg-secondary-200 border border-secondary-300 rounded-md py-2 text-sm font-semibold text-secondary-900 text-center hover:bg-secondary-300 dark:bg-secondary-800 dark:border-secondary-700 dark:text-secondary-100 dark:hover:bg-secondary-700"
-                  onClick={() => setShowPaypal('basic')}
+                  onClick={() => setShowPaypal('starter')}
                 >
                   Elegir Starter
                 </button>
@@ -327,38 +327,6 @@ export default function Home() {
                 >
                   Elegir Enterprise
                 </button>
-      {/* Modal PayPal */}
-      {showPaypal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white dark:bg-secondary-900 rounded-lg shadow-soft-lg p-8 max-w-md w-full relative border border-secondary-200/60 dark:border-secondary-800/60">
-            <button
-              className="absolute top-2 right-2 text-secondary-400 hover:text-secondary-700 dark:hover:text-secondary-200 text-xl"
-              onClick={() => setShowPaypal(null)}
-            >
-              ×
-            </button>
-            <h3 className="text-lg font-bold mb-4 text-center text-secondary-900 dark:text-white">Completa tu suscripción</h3>
-            {showPaypal === 'basic' && (
-              <PaypalSubscribeButton
-                planId="P-33L930430F322933SNCZN4IQ" // Plan Básico real
-                onApprove={() => { setShowPaypal(null); window.location.href = '/dashboard'; }}
-              />
-            )}
-            {showPaypal === 'pro' && (
-              <PaypalSubscribeButton
-                planId="P-5X541101L03472358NCZN6VY" // Reemplaza por tu planId real (pro)
-                onApprove={() => { setShowPaypal(null); window.location.href = '/dashboard'; }}
-              />
-            )}
-            {showPaypal === 'enterprise' && (
-              <PaypalSubscribeButton
-                planId="P-69007670NR021894UNC4I6CI" // Plan Enterprise real
-                onApprove={() => { setShowPaypal(null); window.location.href = '/dashboard'; }}
-              />
-            )}
-          </div>
-        </div>
-      )}
               </div>
               <div className="pt-6 pb-8 px-6">
                 <h3 className="text-xs font-medium text-secondary-900 dark:text-white tracking-wide uppercase">Incluye</h3>
@@ -462,6 +430,42 @@ export default function Home() {
 
       {/* CTA Final */}
       {/* Puedes agregar aquí una sección de llamada a la acción final si lo deseas */}
+
+      {/* Modal PayPal */}
+      {showPaypal && (
+        <div className="fixed inset-0 z-50">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" aria-hidden="true" />
+          <div className="flex items-center justify-center min-h-screen px-4">
+            <div className="relative bg-white dark:bg-secondary-900 rounded-2xl shadow-2xl border border-secondary-200 dark:border-white/20 w-full max-w-md mx-auto p-8 z-10">
+              <button
+                className="absolute top-4 right-4 text-secondary-400 hover:text-secondary-700 dark:hover:text-secondary-200 text-xl font-bold"
+                onClick={() => setShowPaypal(null)}
+              >
+                ×
+              </button>
+              <h3 className="text-xl font-bold mb-6 text-center text-secondary-900 dark:text-white">Completa tu suscripción</h3>
+              {showPaypal === 'starter' && (
+                <PaypalSubscribeButton
+                  planId="P-33L930430F322933SNCZN4IQ"
+                  onApprove={() => { setShowPaypal(null); window.location.href = '/dashboard'; }}
+                />
+              )}
+              {showPaypal === 'pro' && (
+                <PaypalSubscribeButton
+                  planId="P-5X541101L03472358NCZN6VY"
+                  onApprove={() => { setShowPaypal(null); window.location.href = '/dashboard'; }}
+                />
+              )}
+              {showPaypal === 'enterprise' && (
+                <PaypalSubscribeButton
+                  planId="P-69007670NR021894UNC4I6CI"
+                  onApprove={() => { setShowPaypal(null); window.location.href = '/dashboard'; }}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

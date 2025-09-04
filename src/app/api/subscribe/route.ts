@@ -18,12 +18,34 @@ export async function POST(req: NextRequest) {
     if (userError || !userData?.user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
     const user = userData.user;
     if (!subscriptionId) return NextResponse.json({ error: 'Falta subscriptionId' }, { status: 400 });
-    // Validar planTier
-    const validTiers = ['pro', 'basic', 'free', 'owner', 'no_cost'];
+    // Validar planTier y definir límites de minutos
+    const validTiers = ['pro', 'starter', 'free', 'owner', 'no_cost'];
     const tier = validTiers.includes(planTier) ? planTier : 'pro';
-    // Actualiza el perfil del usuario con el subscriptionId y plan_tier correcto
+    
+    // Definir límites de minutos según el plan
+    let monthlyMinutesLimit = 60; // default for starter
+    switch (tier) {
+      case 'free':
+        monthlyMinutesLimit = 10;
+        break;
+      case 'starter':
+        monthlyMinutesLimit = 60;
+        break;
+      case 'pro':
+        monthlyMinutesLimit = 300;
+        break;
+      case 'owner':
+      case 'no_cost':
+        monthlyMinutesLimit = 10000; // unlimited essentially
+        break;
+      default:
+        monthlyMinutesLimit = 60;
+    }
+    
+    // Actualiza el perfil del usuario con el subscriptionId, plan_tier y límite correcto
     const { error: updateError } = await supabase.from('profiles').update({
       plan_tier: tier,
+      monthly_minutes_limit: monthlyMinutesLimit,
       paypal_subscription_id: subscriptionId,
       updated_at: new Date().toISOString(),
     }).eq('user_id', user.id);

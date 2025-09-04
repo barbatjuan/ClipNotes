@@ -13,6 +13,7 @@ import { SummaryDisplay } from "@/components/SummaryDisplay";
 
 import { PaypalSubscribeButton } from "@/components/PaypalSubscribeButton";
 import { UsageLineChart } from "@/components/UsageLineChart";
+import { LimitExceededModal } from "@/components/LimitExceededModal";
 
 
 export default function Dashboard() {
@@ -23,10 +24,27 @@ export default function Dashboard() {
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<{error?: string, success?: string, loading?: boolean}>({});
-  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'pro'>('basic');
+  const [selectedPlan, setSelectedPlan] = useState<'starter' | 'pro'>('starter');
   const [activeSection, setActiveSection] = useState<'dashboard' | 'history' | 'stats'>('dashboard');
   const [summaryStyle, setSummaryStyle] = useState<'ejecutivo' | 'tecnico' | 'amigable'>('ejecutivo');
+  const [profileRefreshKey, setProfileRefreshKey] = useState(0);
+  const [limitModal, setLimitModal] = useState<{
+    isOpen: boolean;
+    videoDuration: number;
+    remainingMinutes: number;
+  }>({ isOpen: false, videoDuration: 0, remainingMinutes: 0 });
 
+
+  // Función para refrescar perfil
+  const refreshProfile = useCallback(async () => {
+    if (!user) return;
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+    setUserProfile(profile);
+  }, [user]);
 
   // Cargar usuario y perfil
   useEffect(() => {
@@ -48,7 +66,7 @@ export default function Dashboard() {
               user_id: user.id,
               plan_tier: 'free',
               minutes_processed_current_month: 0,
-              monthly_minutes_limit: 60,
+              monthly_minutes_limit: 10,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             })
@@ -61,13 +79,18 @@ export default function Dashboard() {
       }
     };
     fetchUserAndProfile();
-  }, []);
+  }, [profileRefreshKey]);
 
   // Sync activeSection from query param `section`
   useEffect(() => {
     const section = searchParams?.get('section');
-    if (section === 'history' || section === 'stats' || section === 'dashboard') {
+    console.log('🔄 URL changed, section param:', section);
+    if (section === 'history' || section === 'stats') {
+      console.log('✅ Setting activeSection to:', section);
       setActiveSection(section);
+    } else {
+      console.log('🏠 Setting activeSection to: dashboard');
+      setActiveSection('dashboard');
     }
   }, [searchParams]);
   // Lógica para guardar la suscripción PayPal en el backend
@@ -86,21 +109,16 @@ export default function Dashboard() {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Error al guardar la suscripción');
-        setFeedback({ success: '¡Suscripción activada! Recarga la página para ver los cambios.' });
-        // Opcional: recargar perfil
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-        setUserProfile(profile);
+        setFeedback({ success: '¡Suscripción activada! Los cambios se han aplicado.' });
+        // Recargar perfil inmediatamente
+        await refreshProfile();
       } catch (e: any) {
         setFeedback({ error: e.message || 'Ocurrió un error al guardar la suscripción.' });
       } finally {
         setFeedback(f => ({ ...f, loading: false }));
       }
     },
-    [user, selectedPlan]
+    [user, selectedPlan, refreshProfile]
   );
 
   const fetchJobs = async (uid: string) => {
@@ -121,18 +139,25 @@ export default function Dashboard() {
   };
 
 
-  // Polling automático para refrescar jobs cada 5s si hay jobs en proceso
+  // Cargar jobs inicial
   useEffect(() => {
     if (!user) return;
     fetchJobs(user.id);
+  }, [user]);
+
+  // Polling automático para refrescar jobs cada 5s si hay jobs en proceso
+  useEffect(() => {
+    if (!user) return;
+    
     const interval = setInterval(() => {
+      // Solo hacer polling si hay jobs en proceso
       if (jobs.some(j => j.status === 'pending' || j.status === 'processing')) {
         fetchJobs(user.id);
       }
     }, 5000);
+    
     return () => clearInterval(interval);
-    // eslint-disable-next-line
-  }, [user, jobs]);
+  }, [user, jobs.filter(j => j.status === 'pending' || j.status === 'processing').length]);
   // Eliminar job
   const handleDeleteJob = async (jobId: string) => {
     if (!confirm('¿Seguro que quieres eliminar este resumen?')) return;
@@ -181,6 +206,38 @@ export default function Dashboard() {
   const handlePasteLink = async (url: string, title?: string) => {
     setFeedback({ loading: true });
     try {
+      // Primero, obtener la duración del video
+      const durationRes = await fetch('/api/video-duration', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url }),
+      });
+      
+      if (!durationRes.ok) {
+        const durationError = await durationRes.json();
+        throw new Error(durationError.error || 'No se pudo validar la duración del video');
+      }
+      
+      const { durationSeconds } = await durationRes.json();
+      const durationMinutes = Math.ceil(durationSeconds / 60);
+      
+      // Validar si el video excede la cuota restante
+      const usedMinutes = userProfile ? Math.ceil((userProfile.minutes_processed_current_month || 0) / 60) : 0;
+      const limitMinutes = userProfile?.monthly_minutes_limit || 10;
+      const remainingMinutes = Math.max(limitMinutes - usedMinutes, 0);
+      
+      if (durationMinutes > remainingMinutes) {
+        setLimitModal({
+          isOpen: true,
+          videoDuration: durationMinutes,
+          remainingMinutes
+        });
+        return;
+      }
+      
+      // Si pasa la validación, procesar el video
       const token = (await supabase.auth.getSession()).data.session?.access_token;
       const res = await fetch('/api/jobs', {
         method: 'POST',
@@ -192,7 +249,7 @@ export default function Dashboard() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al encolar el resumen');
-      setFeedback({ success: '¡Tu video está encolado! El resumen aparecerá aquí cuando esté listo.' });
+      setFeedback({ success: `¡Tu video está encolado! (${durationMinutes} min) El resumen aparecerá aquí cuando esté listo.` });
       fetchJobs(user.id);
     } catch (e: any) {
       setFeedback({ error: e.message || 'Ocurrió un error al procesar el contenido.' });
@@ -229,11 +286,18 @@ export default function Dashboard() {
     window.location.reload();
   };
   const handleNavigate = (section: 'dashboard' | 'history' | 'stats') => {
-    setActiveSection(section);
+    if (section === 'stats') {
+      router.push('/dashboard?section=stats');
+    } else if (section === 'history') {
+      router.push('/dashboard?section=history');
+    } else {
+      router.push('/dashboard');
+    }
   };
 
   // Render content based on active section
   const renderContent = () => {
+    console.log('🎨 Rendering content for activeSection:', activeSection);
     if (activeSection === 'stats') {
       return (
         <div className="animate-fade-in">
@@ -281,7 +345,7 @@ export default function Dashboard() {
                 <div className="flex items-center gap-3">
                   <span className="badge badge-primary text-sm font-semibold capitalize">{userProfile?.plan_tier || 'free'}</span>
                   <span className="text-secondary-600 dark:text-secondary-300">
-                    {userProfile ? Math.ceil((userProfile.minutes_processed_current_month || 0) / 60) : 0} / {userProfile?.monthly_minutes_limit || 60} minutos usados
+                    {userProfile ? Math.ceil((userProfile.minutes_processed_current_month || 0) / 60) : 0} / {userProfile?.monthly_minutes_limit || 10} minutos usados
                   </span>
                 </div>
               </div>
@@ -355,8 +419,22 @@ export default function Dashboard() {
     return (
       <div className="animate-fade-in">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">Dashboard</h1>
-          <p className="text-secondary-600 dark:text-secondary-300 text-lg leading-relaxed">Transforma tus videos y audios en resúmenes inteligentes con IA</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">Dashboard</h1>
+              <p className="text-secondary-600 dark:text-secondary-300 text-lg leading-relaxed">Transforma tus videos y audios en resúmenes inteligentes con IA</p>
+            </div>
+            <button 
+              onClick={() => refreshProfile()}
+              className="btn btn-secondary flex items-center gap-2"
+              disabled={feedback.loading}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Actualizar
+            </button>
+          </div>
         </div>
         
         {/* Mostrar botón PayPal solo si el usuario es free */}
@@ -364,35 +442,37 @@ export default function Dashboard() {
           <div className="mb-8">
             <div className="card-hover p-6 text-center">
               <div className="mb-4">
-                <h3 className="text-xl font-semibold text-secondary-800 mb-2">Actualiza tu Plan</h3>
-                <p className="text-secondary-600">Obtén más minutos y funciones premium</p>
+                <h3 className="text-2xl font-bold text-secondary-900 dark:text-white mb-2">Actualiza tu Plan</h3>
+                <p className="text-secondary-700 dark:text-secondary-300 font-medium">Obtén más minutos y funciones premium</p>
               </div>
               <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
                 <button
-                  className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${selectedPlan === 'basic' ? 'bg-gradient-to-r from-warning-400 to-warning-500 text-white shadow-glow' : 'bg-secondary-50 dark:bg-secondary-900/60 text-secondary-700 dark:text-secondary-200 border border-secondary-300 dark:border-secondary-700 hover:bg-secondary-100 dark:hover:bg-secondary-800'}`}
-                  onClick={() => setSelectedPlan('basic')}
+                  className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${selectedPlan === 'starter' ? 'bg-gradient-to-r from-warning-400 to-warning-500 text-white shadow-glow' : 'bg-secondary-50 dark:bg-secondary-900/60 text-secondary-700 dark:text-secondary-200 border border-secondary-300 dark:border-secondary-700 hover:bg-secondary-100 dark:hover:bg-secondary-800'}`}
+                  onClick={() => setSelectedPlan('starter')}
                 >
-                  Básico: 60 min/mes
+                  Starter: 60 min/mes
                 </button>
                 <button
                   className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${selectedPlan === 'pro' ? 'bg-gradient-to-r from-warning-400 to-warning-500 text-white shadow-glow' : 'bg-secondary-50 dark:bg-secondary-900/60 text-secondary-700 dark:text-secondary-200 border border-secondary-300 dark:border-secondary-700 hover:bg-secondary-100 dark:hover:bg-secondary-800'}`}
                   onClick={() => setSelectedPlan('pro')}
                 >
-                  Pro: 300 min/mes
+                  Premium: 300 min/mes
                 </button>
               </div>
-            {selectedPlan === 'basic' && (
-              <PaypalSubscribeButton
-                planId="P-33L930430F322933SNCZN4IQ" // Plan Básico real
-                onApprove={handlePaypalApprove}
-              />
-            )}
-            {selectedPlan === 'pro' && (
-              <PaypalSubscribeButton
-                planId="P-5X541101L03472358NCZN6VY" // Reemplaza por tu planId real (plan pro)
-                onApprove={handlePaypalApprove}
-              />
-            )}
+              <div className="flex justify-center">
+                {selectedPlan === 'starter' && (
+                  <PaypalSubscribeButton
+                    planId="P-33L930430F322933SNCZN4IQ" // Plan Básico real
+                    onApprove={handlePaypalApprove}
+                  />
+                )}
+                {selectedPlan === 'pro' && (
+                  <PaypalSubscribeButton
+                    planId="P-5X541101L03472358NCZN6VY" // Reemplaza por tu planId real (plan pro)
+                    onApprove={handlePaypalApprove}
+                  />
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -411,20 +491,69 @@ export default function Dashboard() {
               <option value="amigable">Amigable (Newsletter/Updates)</option>
             </select>
           </div>
+          
           <UploadInput
             onUpload={handleUpload}
             onPasteLink={handlePasteLink}
             loading={feedback.loading}
             error={feedback.error}
             success={feedback.success}
-            disabled={feedback.loading || (userProfile && Math.ceil((userProfile.minutes_processed_current_month || 0) / 60) >= (userProfile.monthly_minutes_limit || 60))}
+            disabled={feedback.loading || (userProfile && Math.ceil((userProfile.minutes_processed_current_month || 0) / 60) >= (userProfile.monthly_minutes_limit || 10))}
             showTitleInput={true}
+            userProfile={userProfile ? {
+              plan_tier: userProfile.plan_tier,
+              monthly_minutes_limit: userProfile.monthly_minutes_limit,
+              minutes_processed_current_month: userProfile.minutes_processed_current_month
+            } : undefined}
           />
-          {userProfile && Math.ceil((userProfile.minutes_processed_current_month || 0) / 60) >= (userProfile.monthly_minutes_limit || 60) && (
-            <div className="mt-4 p-4 bg-danger-50 border border-danger-200 rounded-xl">
-              <div className="flex items-center gap-2 text-danger-700 font-semibold">
-                <span className="text-lg">⚠️</span>
-                Has alcanzado el límite de minutos procesados este mes
+          {userProfile && Math.ceil((userProfile.minutes_processed_current_month || 0) / 60) >= (userProfile.monthly_minutes_limit || 10) && (
+            <div className="mt-4 space-y-4">
+              {/* Mostrar opciones de upgrade primero */}
+              <div className="card-hover p-6 text-center">
+                <div className="mb-4">
+                  <h3 className="text-2xl font-bold text-secondary-900 dark:text-white mb-2">Actualiza tu Plan</h3>
+                  <p className="text-secondary-700 dark:text-secondary-300 font-medium">Obtén más minutos para continuar procesando</p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+                  {userProfile.plan_tier === 'free' && (
+                    <>
+                      <button
+                        className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${selectedPlan === 'starter' ? 'bg-gradient-to-r from-warning-400 to-warning-500 text-white shadow-glow' : 'bg-secondary-50 dark:bg-secondary-900/60 text-secondary-700 dark:text-secondary-200 border border-secondary-300 dark:border-secondary-700 hover:bg-secondary-100 dark:hover:bg-secondary-800'}`}
+                        onClick={() => setSelectedPlan('starter')}
+                      >
+                        Starter: 60 min/mes
+                      </button>
+                      <button
+                        className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${selectedPlan === 'pro' ? 'bg-gradient-to-r from-warning-400 to-warning-500 text-white shadow-glow' : 'bg-secondary-50 dark:bg-secondary-900/60 text-secondary-700 dark:text-secondary-200 border border-secondary-300 dark:border-secondary-700 hover:bg-secondary-100 dark:hover:bg-secondary-800'}`}
+                        onClick={() => setSelectedPlan('pro')}
+                      >
+                        Premium: 300 min/mes
+                      </button>
+                    </>
+                  )}
+                  {userProfile.plan_tier === 'starter' && (
+                    <button
+                      className="px-6 py-3 rounded-xl font-semibold transition-all duration-200 bg-gradient-to-r from-warning-400 to-warning-500 text-white shadow-glow"
+                      onClick={() => setSelectedPlan('pro')}
+                    >
+                      Actualizar a Premium: 300 min/mes
+                    </button>
+                  )}
+                </div>
+                <div className="flex justify-center">
+                  {userProfile.plan_tier === 'free' && selectedPlan === 'starter' && (
+                    <PaypalSubscribeButton
+                      planId="P-33L930430F322933SNCZN4IQ"
+                      onApprove={handlePaypalApprove}
+                    />
+                  )}
+                  {(userProfile.plan_tier === 'free' && selectedPlan === 'pro') || userProfile.plan_tier === 'starter' && (
+                    <PaypalSubscribeButton
+                      planId="P-5X541101L03472358NCZN6VY"
+                      onApprove={handlePaypalApprove}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -494,13 +623,13 @@ export default function Dashboard() {
               </div>
               <div className="text-3xl font-bold text-secondary-800 dark:text-secondary-100 mb-1">
                 {userProfile ? Math.ceil((userProfile.minutes_processed_current_month || 0) / 60) : 0}
-                <span className="text-lg text-secondary-500 dark:text-secondary-400">/{userProfile?.monthly_minutes_limit || 60}</span>
+                <span className="text-lg text-secondary-500 dark:text-secondary-400">/{userProfile?.monthly_minutes_limit || 10}</span>
               </div>
               <div className="text-secondary-600 dark:text-secondary-300 font-medium mb-3">Minutos Consumidos</div>
               <div className="text-sm text-secondary-500 dark:text-secondary-400 mb-3">
                 {(() => {
                   const used = userProfile ? Math.ceil((userProfile.minutes_processed_current_month || 0) / 60) : 0;
-                  const limit = userProfile?.monthly_minutes_limit || 60;
+                  const limit = userProfile?.monthly_minutes_limit || 10;
                   const remaining = Math.max(limit - used, 0);
                   return `Te quedan ${remaining} minutos`;
                 })()}
@@ -603,6 +732,21 @@ export default function Dashboard() {
   };
 
   return (
-    <>{renderContent()}</>
+    <>
+      {renderContent()}
+      
+      {/* Modal de límite excedido */}
+      <LimitExceededModal
+        isOpen={limitModal.isOpen}
+        onClose={() => setLimitModal({ isOpen: false, videoDuration: 0, remainingMinutes: 0 })}
+        videoDuration={limitModal.videoDuration}
+        remainingMinutes={limitModal.remainingMinutes}
+        planTier={userProfile?.plan_tier || 'free'}
+        onUpgrade={async (subscriptionId: string) => {
+          await handlePaypalApprove(subscriptionId);
+          setLimitModal({ isOpen: false, videoDuration: 0, remainingMinutes: 0 });
+        }}
+      />
+    </>
   );
 }
