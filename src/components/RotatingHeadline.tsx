@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 const HEADLINES = [
   // Reuniones / Trabajo
@@ -31,33 +31,33 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export function RotatingHeadline() {
-  // Importante para SSR: que el primer render sea determinista
-  const [headlines, setHeadlines] = useState<string[]>(HEADLINES);
-  const [index, setIndex] = useState(0);
-  const [fade, setFade] = useState(false);
+  const [currentHeadline, setCurrentHeadline] = useState(HEADLINES[0]);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [shuffledHeadlines] = useState(() => shuffle(HEADLINES));
+
+  const rotateHeadline = useCallback(() => {
+    setIsAnimating(true);
+    setTimeout(() => {
+      const currentIndex = shuffledHeadlines.indexOf(currentHeadline);
+      const nextIndex = (currentIndex + 1) % shuffledHeadlines.length;
+      setCurrentHeadline(shuffledHeadlines[nextIndex]);
+      requestAnimationFrame(() => setIsAnimating(false));
+    }, 500);
+  }, [currentHeadline, shuffledHeadlines]);
 
   useEffect(() => {
-    // Mezclamos DESPUÉS de montar para evitar diferencias SSR/CSR
-    setHeadlines((prev) => shuffle(prev));
-    const interval = setInterval(() => {
-      setFade(true);
-      setTimeout(() => {
-        setIndex((prev) => (prev + 1) % headlines.length);
-        // Dejar que el DOM pinte y luego quitar el fade
-        requestAnimationFrame(() => setFade(false));
-      }, 500);
-    }, 5000);
+    const interval = setInterval(rotateHeadline, 5000);
     return () => clearInterval(interval);
-  }, [headlines.length]);
+  }, [rotateHeadline]);
 
   return (
     <h2
-      className={`text-lg md:text-xl text-center font-bold mt-4 transition-opacity duration-500 text-secondary-800 dark:text-white ${
-        fade ? 'opacity-0' : 'opacity-100'
+      className={`text-lg md:text-xl text-center font-bold mt-4 transition-opacity duration-500 text-primary-500 dark:text-primary-400 ${
+        isAnimating ? 'opacity-0' : 'opacity-100'
       }`}
       aria-live="polite"
     >
-      {headlines[index]}
+      {currentHeadline}
     </h2>
   );
 }

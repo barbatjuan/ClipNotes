@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { UploadInput } from '@/components/UploadInput';
 import { SummaryDisplay } from '@/components/SummaryDisplay';
+import RotatingText from '@/components/RotatingText';
 import { RotatingHeadline } from '@/components/RotatingHeadline';
 import { useFeedback } from '@/hooks/useFeedback';
 import { urlSchema, fileSchema } from '@/utils/validation';
@@ -21,24 +22,24 @@ export default function Home() {
   const [notes, setNotes] = useState('');
   const [user, setUser] = useState<any>(null);
   const feedback = useFeedback();
-  const [showPaypal, setShowPaypal] = useState<'basic' | 'pro' | null>(null);
-  const [rotatingWord, setRotatingWord] = useState<'reuniones' | 'clases' | 'webinars' | 'entrevistas'>('reuniones');
-  const [wordAnimating, setWordAnimating] = useState(false);
-  const [pauseRotation, setPauseRotation] = useState(false);
+  const [showPaypal, setShowPaypal] = useState<'basic' | 'pro' | 'enterprise' | null>(null);
 
   // Detectar usuario autenticado
   useEffect(() => {
+    let isRedirecting = false;
     const getSession = async () => {
       const { data } = await supabase.auth.getSession();
       setUser(data.session?.user ?? null);
-      if (data.session?.user) {
+      if (data.session?.user && !isRedirecting) {
+        isRedirecting = true;
         router.push('/dashboard');
       }
     };
     getSession();
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (session?.user) {
+      if (session?.user && !isRedirecting) {
+        isRedirecting = true;
         router.push('/dashboard');
       }
     });
@@ -46,23 +47,6 @@ export default function Home() {
       listener?.subscription.unsubscribe();
     };
   }, [router]);
-
-  // Rotar palabra del hero entre múltiples términos con transición
-  useEffect(() => {
-    const words: Array<'reuniones' | 'clases' | 'webinars' | 'entrevistas'> = ['reuniones', 'clases', 'webinars', 'entrevistas'];
-    let i = 0;
-    const tick = () => {
-      setWordAnimating(true);
-      setTimeout(() => {
-        i = (i + 1) % words.length;
-        setRotatingWord(words[i]);
-        // pequeño delay para permitir que la nueva palabra haga fade-in
-        requestAnimationFrame(() => setWordAnimating(false));
-      }, 200);
-    };
-    const id = setInterval(() => { if (!pauseRotation) tick(); }, 3000);
-    return () => clearInterval(id);
-  }, [pauseRotation]);
 
   // Integración real con OpenAI vía API local
   // Nuevo flujo: encolar job
@@ -134,22 +118,10 @@ export default function Home() {
       <section className="bg-gradient-to-b from-secondary-50 to-secondary-100 dark:from-secondary-900 dark:to-secondary-800 pb-16 pt-12">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-secondary-900 dark:text-white leading-tight">
-            <span
-              className="block mb-2 h-[1.2em]"
-              aria-live="polite"
-              onMouseEnter={() => setPauseRotation(true)}
-              onMouseLeave={() => setPauseRotation(false)}
-            >
-              <span
-                className={
-                  `inline-block transition-all duration-300 ease-out ` +
-                  (wordAnimating ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0')
-                }
-              >
-                Tus {rotatingWord} grabadas,
-              </span>
+            <span className="block mb-2 h-[1.2em]" aria-live="polite">
+              Tus <RotatingText words={['reuniones', 'clases', 'entrevistas']} className="text-primary-500" /> grabadas,
             </span>
-            <span className="block text-primary-500 drop-shadow">Convertidas en Notas Perfectas</span>
+            <span className="block text-secondary-900 dark:text-white drop-shadow">Convertidas en Notas Perfectas</span>
           </h1>
           <RotatingHeadline />
           <p className="mt-6 max-w-xl mx-auto text-lg md:text-2xl text-secondary-600 dark:text-secondary-300">
@@ -243,18 +215,18 @@ export default function Home() {
 
           <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-6 lg:max-w-5xl lg:mx-auto xl:max-w-none xl:mx-0">
             {/* Plan Starter */}
-            <div className="border-2 border-success-500 rounded-lg shadow-soft bg-white/80 dark:bg-secondary-900/60 backdrop-blur divide-y divide-secondary-200 dark:divide-secondary-800">
+            <div className="border border-secondary-300 rounded-lg shadow-soft bg-white/70 dark:bg-secondary-900/50 backdrop-blur divide-y divide-secondary-200 dark:divide-secondary-800">
               <div className="p-6">
                 <h2 className="text-lg leading-6 font-medium text-secondary-900 dark:text-white">Starter</h2>
                 <p className="mt-4">
-                  <span className="text-4xl font-extrabold text-success-600 dark:text-success-400">$5</span>
+                  <span className="text-4xl font-extrabold text-secondary-700 dark:text-secondary-300">$5</span>
                   <span className="text-base font-medium text-secondary-600 dark:text-secondary-400">/mes</span>
                 </p>
                 <p className="mt-4 text-sm text-secondary-600 dark:text-secondary-400">
                   60 minutos de procesamiento al mes.
                 </p>
                 <button
-                  className="mt-8 block w-full bg-success-500 border border-success-500 rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-success-600"
+                  className="mt-8 block w-full bg-secondary-200 border border-secondary-300 rounded-md py-2 text-sm font-semibold text-secondary-900 text-center hover:bg-secondary-300 dark:bg-secondary-800 dark:border-secondary-700 dark:text-secondary-100 dark:hover:bg-secondary-700"
                   onClick={() => setShowPaypal('basic')}
                 >
                   Elegir Starter
@@ -265,30 +237,34 @@ export default function Home() {
                 <ul className="mt-6 space-y-4">
                   <li className="flex items-start">
                     <div className="flex-shrink-0">
-                      <CheckCircleIcon className="h-5 w-5 text-success-500" aria-hidden="true" />
+                      <CheckCircleIcon className="h-5 w-5 text-secondary-400" aria-hidden="true" />
                     </div>
                     <p className="ml-3 text-base text-secondary-700 dark:text-secondary-300">60 minutos de procesamiento/mes</p>
                   </li>
                   <li className="flex items-start">
                     <div className="flex-shrink-0">
-                      <CheckCircleIcon className="h-5 w-5 text-success-500" aria-hidden="true" />
+                      <CheckCircleIcon className="h-5 w-5 text-secondary-400" aria-hidden="true" />
                     </div>
                     <p className="ml-3 text-base text-secondary-700 dark:text-secondary-300">Resúmenes con IA</p>
                   </li>
                   <li className="flex items-start">
                     <div className="flex-shrink-0">
-                      <CheckCircleIcon className="h-5 w-5 text-success-500" aria-hidden="true" />
+                      <CheckCircleIcon className="h-5 w-5 text-secondary-400" aria-hidden="true" />
                     </div>
                     <p className="ml-3 text-base text-secondary-700 dark:text-secondary-300">Historial de 30 días</p>
                   </li>
                 </ul>
               </div>
             </div>
-            <div className="border-2 border-warning-500 rounded-lg shadow-soft bg-white/80 dark:bg-secondary-900/60 backdrop-blur divide-y divide-secondary-200 dark:divide-secondary-800">
+            <div className="border-2 border-warning-500 rounded-lg shadow-soft bg-warning-50/70 dark:bg-warning-500/20 backdrop-blur divide-y divide-secondary-200 dark:divide-secondary-800 relative overflow-hidden">
+              <div className="absolute top-5 -right-8 z-10">
+                <div className="bg-warning-500 text-white text-xs font-bold px-10 py-1.5 transform rotate-45 origin-center shadow-lg">
+                  POPULAR
+                </div>
+              </div>
               <div className="p-6">
                 <div className="flex justify-between items-center">
                   <h2 className="text-lg leading-6 font-medium text-secondary-900 dark:text-white">Premium</h2>
-                  <p className="bg-primary-500/10 text-primary-500 text-xs font-semibold px-2.5 py-0.5 rounded-full">Popular</p>
                 </div>
                 <p className="mt-4">
                   <span className="text-4xl font-extrabold text-secondary-900 dark:text-white">$19</span>
@@ -347,7 +323,7 @@ export default function Home() {
                 </p>
                 <button
                   className="mt-8 block w-full bg-primary-500 border border-transparent rounded-md py-2 text-sm font-semibold text-white text-center hover:bg-primary-600"
-                  onClick={() => setShowPaypal('pro')}
+                  onClick={() => setShowPaypal('enterprise')}
                 >
                   Elegir Enterprise
                 </button>
@@ -371,6 +347,12 @@ export default function Home() {
             {showPaypal === 'pro' && (
               <PaypalSubscribeButton
                 planId="P-5X541101L03472358NCZN6VY" // Reemplaza por tu planId real (pro)
+                onApprove={() => { setShowPaypal(null); window.location.href = '/dashboard'; }}
+              />
+            )}
+            {showPaypal === 'enterprise' && (
+              <PaypalSubscribeButton
+                planId="P-69007670NR021894UNC4I6CI" // Plan Enterprise real
                 onApprove={() => { setShowPaypal(null); window.location.href = '/dashboard'; }}
               />
             )}

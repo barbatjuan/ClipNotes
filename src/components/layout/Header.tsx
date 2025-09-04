@@ -12,19 +12,46 @@ export default function Header() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [showAuth, setShowAuth] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const AuthModal = dynamic(() => import("@/components/AuthModal"), { ssr: false });
 
   useEffect(() => {
+    let isMounted = true;
+    let timeout: NodeJS.Timeout;
+    
     const getSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setUser(data.session?.user ?? null);
+      if (!isMounted) return;
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (isMounted) {
+          setUser(data.session?.user ?? null);
+          setIsInitialized(true);
+        }
+      } catch (error) {
+        console.error('Error getting session:', error);
+        if (isMounted) setIsInitialized(true);
+      }
     };
+    
     getSession();
+    
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) setShowAuth(false);
+      if (!isMounted) return;
+      
+      // Debounce para evitar múltiples actualizaciones rápidas
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        if (!isMounted) return;
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          setShowAuth(false);
+        }
+      }, 100);
     });
+    
     return () => {
+      isMounted = false;
+      clearTimeout(timeout);
       listener?.subscription.unsubscribe();
     };
   }, []);
@@ -83,7 +110,9 @@ export default function Header() {
           </div>
         </div>
       </nav>
-      <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
+      {isInitialized && !user && (
+        <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
+      )}
     </header>
   );
 }
