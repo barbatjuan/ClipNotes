@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useJobs } from "@/contexts/JobsContext";
+import i18n from "@/lib/i18n";
+import { useTranslation } from "react-i18next";
 import { getUserJobs } from "@/lib/supabase/jobs";
 import { CheckCircleIcon, ClockIcon, XCircleIcon, ClipboardIcon, TrashIcon, ArrowDownTrayIcon, LinkIcon } from "@heroicons/react/24/outline";
 import EditableJobCard from "./EditableJobCard";
@@ -21,6 +23,14 @@ export default function Dashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { jobs, refreshJobs } = useJobs();
+  const { t } = useTranslation();
+  
+  // Establecer español como idioma predeterminado solo en la primera carga
+  useEffect(() => {
+    if (!localStorage.getItem('i18nextLng')) {
+      i18n.changeLanguage('es');
+    }
+  }, []);
   const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -341,7 +351,7 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
         <Header />
-        <div className="mt-10 text-lg text-secondary-600 dark:text-secondary-300">Debes iniciar sesión para ver tu dashboard.</div>
+        <div className="mt-10 text-lg text-secondary-600 dark:text-secondary-300">{t('dashboard.loginRequired')}</div>
       </div>
     );
   }
@@ -375,35 +385,35 @@ export default function Dashboard() {
       return (
         <div className="animate-fade-in">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">Estadísticas y Análisis</h1>
-            <p className="text-secondary-600 dark:text-secondary-300 text-lg leading-relaxed">Visualiza el rendimiento y uso de tu cuenta</p>
+            <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">{t('stats.title')}</h1>
+            <p className="text-secondary-600 dark:text-secondary-300 text-lg leading-relaxed">{t('stats.subtitle')}</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="card-hover p-8 text-center">
               <div className="text-5xl font-bold text-primary-600 mb-3">{jobs.length}</div>
-              <div className="text-secondary-600 dark:text-secondary-300 font-semibold mb-4">Total Archivos</div>
+              <div className="text-secondary-600 dark:text-secondary-300 font-semibold mb-4">{t('stats.totalFiles')}</div>
               <div className="w-full bg-secondary-200 dark:bg-secondary-800 rounded-full h-2">
                 <div className="bg-gradient-to-r from-primary-500 to-primary-600 h-2 rounded-full" style={{ width: '100%' }}></div>
               </div>
             </div>
             <div className="card-hover p-8 text-center">
               <div className="text-5xl font-bold text-success-600 mb-3">{jobs.filter(j => j.status === 'completed').length}</div>
-              <div className="text-secondary-600 dark:text-secondary-300 font-semibold mb-4">Completados</div>
+              <div className="text-secondary-600 dark:text-secondary-300 font-semibold mb-4">{t('stats.completed')}</div>
               <div className="w-full bg-secondary-200 dark:bg-secondary-800 rounded-full h-2">
                 <div className="bg-gradient-to-r from-success-500 to-success-600 h-2 rounded-full" style={{ width: `${jobs.length ? (jobs.filter(j => j.status === 'completed').length / jobs.length) * 100 : 0}%` }}></div>
               </div>
             </div>
             <div className="card-hover p-8 text-center">
               <div className="text-5xl font-bold text-warning-600 mb-3">{jobs.filter(j => j.status === 'pending' || j.status === 'processing').length}</div>
-              <div className="text-secondary-600 dark:text-secondary-300 font-semibold mb-4">En Proceso</div>
+              <div className="text-secondary-600 dark:text-secondary-300 font-semibold mb-4">{t('stats.inProgress')}</div>
               <div className="w-full bg-secondary-200 dark:bg-secondary-800 rounded-full h-2">
                 <div className="bg-gradient-to-r from-warning-500 to-warning-600 h-2 rounded-full" style={{ width: `${jobs.length ? (jobs.filter(j => j.status === 'pending' || j.status === 'processing').length / jobs.length) * 100 : 0}%` }}></div>
               </div>
             </div>
             <div className="card-hover p-8 text-center">
               <div className="text-5xl font-bold text-danger-600 mb-3">{jobs.filter(j => j.status === 'failed').length}</div>
-              <div className="text-secondary-600 dark:text-secondary-300 font-semibold mb-4">Errores</div>
+              <div className="text-secondary-600 dark:text-secondary-300 font-semibold mb-4">{t('stats.errors')}</div>
               <div className="w-full bg-secondary-200 dark:bg-secondary-800 rounded-full h-2">
                 <div className="bg-gradient-to-r from-danger-500 to-danger-600 h-2 rounded-full" style={{ width: `${jobs.length ? (jobs.filter(j => j.status === 'failed').length / jobs.length) * 100 : 0}%` }}></div>
               </div>
@@ -414,7 +424,7 @@ export default function Dashboard() {
           <div className="card-hover p-8 mb-8">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-secondary-800 dark:text-secondary-100 mb-2">Plan Actual</h2>
+                <h2 className="text-2xl font-bold text-secondary-800 dark:text-secondary-100 mb-2">{t('stats.currentPlan')}</h2>
                 <div className="flex items-center gap-3">
                   <span className="badge badge-primary text-sm font-semibold capitalize">{userProfile?.plan_tier || 'free'}</span>
                   <span className="text-secondary-600 dark:text-secondary-300">
@@ -426,7 +436,7 @@ export default function Dashboard() {
                 <div className="text-3xl font-bold text-primary-600 mb-1">
                   {userProfile ? Math.round(((userProfile.minutes_processed_current_month / 60) / userProfile.monthly_minutes_limit) * 100) : 0}%
                 </div>
-                <div className="text-secondary-500 dark:text-secondary-400 text-sm">Uso mensual</div>
+                <div className="text-secondary-500 dark:text-secondary-400 text-sm">{t('stats.monthlyUsage')}</div>
               </div>
             </div>
             <div className="w-full bg-secondary-200 dark:bg-secondary-800 rounded-full h-4">
@@ -439,7 +449,7 @@ export default function Dashboard() {
           
           {/* Usage over time chart */}
           <div className="card p-8">
-            <h3 className="text-xl font-bold text-secondary-800 dark:text-secondary-100 mb-6">Uso a lo largo del tiempo</h3>
+            <h3 className="text-xl font-bold text-secondary-800 dark:text-secondary-100 mb-6">{t('stats.usageOverTime')}</h3>
             <UsageLineChart jobs={jobs} />
           </div>
         </div>
@@ -450,43 +460,43 @@ export default function Dashboard() {
       return (
         <div className="animate-fade-in">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">Ajustes</h1>
-            <p className="text-secondary-600 dark:text-secondary-300 text-lg leading-relaxed">Personaliza tu perfil y gestiona tu suscripción</p>
+            <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">{t('settings.title')}</h1>
+            <p className="text-secondary-600 dark:text-secondary-300 text-lg leading-relaxed">{t('settings.subtitle')}</p>
           </div>
           
           <div className="space-y-8">
             {/* Información del perfil */}
             <div className="card-hover">
               <div className="p-6 border-b border-secondary-200 dark:border-secondary-700">
-                <h2 className="text-xl font-semibold text-secondary-900 dark:text-white mb-2">Información Personal</h2>
-                <p className="text-secondary-600 dark:text-secondary-400">Actualiza tus datos básicos</p>
+                <h2 className="text-xl font-semibold text-secondary-900 dark:text-white mb-2">{t('settings.personalInfo')}</h2>
+                <p className="text-secondary-600 dark:text-secondary-400">{t('settings.personalInfoDesc')}</p>
               </div>
               <div className="p-6 space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
-                    Nombre completo
+                    {t('settings.fullName')}
                   </label>
                   <input
                     type="text"
                     className="input w-full max-w-md"
                     value={profileForm.full_name}
                     onChange={(e) => setProfileForm({...profileForm, full_name: e.target.value})}
-                    placeholder="Tu nombre completo"
+                    placeholder={t('settings.fullNamePlaceholder')}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
-                    Correo electrónico
+                    {t('settings.email')}
                   </label>
                   <input
                     type="email"
                     className="input w-full max-w-md"
                     value={profileForm.email}
                     onChange={(e) => setProfileForm({...profileForm, email: e.target.value})}
-                    placeholder="tu@email.com"
+                    placeholder={t('settings.emailPlaceholder')}
                   />
                   <p className="text-sm text-secondary-500 dark:text-secondary-400 mt-1">
-                    Cambiar el correo requiere verificación
+                    {t('settings.emailChangeNote')}
                   </p>
                 </div>
                 <button 
@@ -494,7 +504,7 @@ export default function Dashboard() {
                   onClick={handleUpdateProfile}
                   disabled={feedback.loading}
                 >
-                  {feedback.loading ? 'Guardando...' : 'Guardar cambios'}
+                  {feedback.loading ? t('common.saving') : t('settings.saveChanges')}
                 </button>
               </div>
             </div>
@@ -502,36 +512,41 @@ export default function Dashboard() {
             {/* Preferencias */}
             <div className="card-hover">
               <div className="p-6 border-b border-secondary-200 dark:border-secondary-700">
-                <h2 className="text-xl font-semibold text-secondary-900 dark:text-white mb-2">Preferencias</h2>
-                <p className="text-secondary-600 dark:text-secondary-400">Personaliza tu experiencia</p>
+                <h2 className="text-xl font-semibold text-secondary-900 dark:text-white mb-2">{t('settings.preferences')}</h2>
+                <p className="text-secondary-600 dark:text-secondary-400">{t('settings.preferencesDesc')}</p>
               </div>
               <div className="p-6 space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
-                    Idioma
+                    {t('settings.language')}
                   </label>
                   <select 
                     className="input w-full max-w-md"
                     value={profileForm.language}
-                    onChange={(e) => setProfileForm({...profileForm, language: e.target.value})}
+                    onChange={(e) => {
+                      const newLanguage = e.target.value;
+                      setProfileForm({...profileForm, language: newLanguage});
+                      // Language change will be handled by i18n
+                      // User needs to save preferences to persist the change
+                    }}
                   >
-                    <option value="es">Español</option>
-                    <option value="en">English</option>
-                    <option value="fr">Français</option>
+                    <option value="es">{t('common.spanish')}</option>
+                    <option value="en">{t('common.english')}</option>
+                    <option value="fr">{t('common.french')}</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
-                    Estilo de resumen por defecto
+                    {t('settings.defaultSummaryStyle')}
                   </label>
                   <select 
                     className="input w-full max-w-md"
                     value={profileForm.default_summary_style}
                     onChange={(e) => setProfileForm({...profileForm, default_summary_style: e.target.value})}
                   >
-                    <option value="ejecutivo">Ejecutivo - Conciso y enfocado en decisiones</option>
-                    <option value="tecnico">Técnico - Detallado con términos específicos</option>
-                    <option value="amigable">Amigable - Lenguaje claro y accesible</option>
+                    <option value="ejecutivo">{t('settings.summaryStyles.executive')}</option>
+                    <option value="tecnico">{t('settings.summaryStyles.technical')}</option>
+                    <option value="amigable">{t('settings.summaryStyles.friendly')}</option>
                   </select>
                 </div>
                 <button 
@@ -539,7 +554,7 @@ export default function Dashboard() {
                   onClick={handleUpdateProfile}
                   disabled={feedback.loading}
                 >
-                  {feedback.loading ? 'Guardando...' : 'Guardar preferencias'}
+                  {feedback.loading ? t('common.saving') : t('settings.savePreferences')}
                 </button>
               </div>
             </div>
@@ -547,8 +562,8 @@ export default function Dashboard() {
             {/* Gestión de suscripción */}
             <div className="card-hover">
               <div className="p-6 border-b border-secondary-200 dark:border-secondary-700">
-                <h2 className="text-xl font-semibold text-secondary-900 dark:text-white mb-2">Suscripción</h2>
-                <p className="text-secondary-600 dark:text-secondary-400">Gestiona tu plan y facturación</p>
+                <h2 className="text-xl font-semibold text-secondary-900 dark:text-white mb-2">{t('settings.subscription')}</h2>
+                <p className="text-secondary-600 dark:text-secondary-400">{t('settings.subscriptionDesc')}</p>
               </div>
               <div className="p-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -650,27 +665,27 @@ export default function Dashboard() {
       return (
         <div className="animate-fade-in">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">Historial de Resúmenes</h1>
-            <p className="text-secondary-600 dark:text-secondary-300 text-lg leading-relaxed">Gestiona y revisa todos tus resúmenes procesados</p>
+            <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">{t('history.title')}</h1>
+            <p className="text-secondary-600 dark:text-secondary-300 text-lg leading-relaxed">{t('history.subtitle')}</p>
           </div>
           {loading && jobs.length === 0 ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-secondary-500 text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto mb-4"></div>
-                Cargando resúmenes...
+                {t('history.loading')}
               </div>
             </div>
           ) : jobs.length === 0 ? (
             <div className="text-center py-16">
               <div className="card p-12">
                 <div className="text-6xl mb-4">📝</div>
-                <h3 className="text-xl font-semibold text-secondary-700 mb-2">No hay resúmenes aún</h3>
-                <p className="text-secondary-500 mb-6">Comienza procesando tu primer video o audio</p>
+                <h3 className="text-xl font-semibold text-secondary-700 mb-2">{t('history.noSummaries')}</h3>
+                <p className="text-secondary-500 mb-6">{t('history.startProcessing')}</p>
                 <button 
                   onClick={() => handleNavigate('dashboard')}
                   className="btn btn-primary"
                 >
-                  Crear primer resumen
+                  {t('history.createFirst')}
                 </button>
               </div>
             </div>
@@ -694,8 +709,8 @@ export default function Dashboard() {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">Dashboard</h1>
-              <p className="text-secondary-600 dark:text-secondary-300 text-lg leading-relaxed">Transforma tus videos y audios en resúmenes inteligentes con IA</p>
+              <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">{t('dashboard.title')}</h1>
+              <p className="text-secondary-600 dark:text-secondary-300 text-lg leading-relaxed">{t('dashboard.subtitle')}</p>
             </div>
             <button 
               onClick={() => refreshProfile()}
@@ -715,8 +730,8 @@ export default function Dashboard() {
           <div className="mb-8">
             <div className="card-hover p-6 text-center">
               <div className="mb-4">
-                <h3 className="text-2xl font-bold text-secondary-900 dark:text-white mb-2">Actualiza tu Plan</h3>
-                <p className="text-secondary-700 dark:text-secondary-300 font-medium">Obtén más minutos y funciones premium</p>
+                <h3 className="text-2xl font-bold text-secondary-900 dark:text-white mb-2">{t('dashboard.upgradeTitle')}</h3>
+                <p className="text-secondary-700 dark:text-secondary-300 font-medium">{t('dashboard.upgradeDescription')}</p>
               </div>
               <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
                 <button
@@ -1014,9 +1029,12 @@ export default function Dashboard() {
         onClose={() => setLimitModal(prev => ({ ...prev, isOpen: false }))}
         videoDuration={limitModal.videoDuration}
         remainingMinutes={limitModal.remainingMinutes}
-        currentPlan={userProfile?.plan_tier || 'free'}
-        onUpgrade={(plan) => {
-          setSelectedPlan(plan);
+        planTier={userProfile?.plan_tier || 'free'}
+        onUpgrade={(subscriptionId) => {
+          // Determinar el plan basado en el subscriptionId
+          const planType = subscriptionId.includes('NCZN4IQ') ? 'starter' : 
+                          subscriptionId.includes('NCZN6VY') ? 'premium' : 'enterprise';
+          setSelectedPlan(planType);
           setLimitModal(prev => ({ ...prev, isOpen: false }));
         }}
       />

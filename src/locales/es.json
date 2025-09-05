@@ -1,0 +1,140 @@
+{
+  "hero": {
+    "title": "Tus {{type}} grabadas, Convertidas en Notas Perfectas",
+    "subtitle": "Pega un link o sube un archivo de Zoom, Meet o Loom. Transcripción y resumen al instante.",
+    "welcome": "¡Bienvenido! Ya puedes generar tus resúmenes.",
+    "loginRequired": "Inicia sesión o crea una cuenta para usar el generador de resúmenes."
+  },
+  "rotatingWords": ["reuniones", "clases", "entrevistas"],
+  "headlines": [
+    "Pega esa reunión eterna del viernes y resúmela en pocas líneas. Para terminar la semana en horario.",
+    "¿Otra reunión que pudo ser un email? Conviértela en uno.",
+    "Loomes que nadie ve. Resúmenes que todos leen.",
+    "Deja de perder tiempo viendo grabaciones. Empieza a tener tardes libres.",
+    "Tu equipo te lo agradecerá. (Y tu paz mental también).",
+    "Resume esa clase para el examen en puntos clave. Para no perderte toda la diversión del fin de semana.",
+    "Apuntes de clase perfectos, sin tener que faltar a la fiesta.",
+    "¿Te saltaste la clase? Nosotros la resumimos por ti.",
+    "Tus maratones de estudio de 4 horas, convertidas en 4 minutos de lectura.",
+    "Aprueba el examen sin sacrificar tu vida social.",
+    "Convierte tu podcast de 2 horas en un hilo de Twitter en 2 minutos.",
+    "La mejor parte de tu entrevista, sin tener que editarla."
+  ],
+  "howItWorks": {
+    "title": "Cómo funciona",
+    "steps": {
+      "step1": {
+        "title": "1. Copia el link de tu grabación",
+        "description": "Obtén el enlace de tu video de Zoom, Google Meet, Loom o cualquier otra plataforma."
+      },
+      "step2": {
+        "title": "2. Pégalo en ClipNotes",
+        "description": "Nuestra IA procesará automáticamente el video y extraerá la información clave."
+      },
+      "step3": {
+        "title": "3. Obtén tu transcripción y resumen",
+        "description": "Recibe una transcripción completa y un resumen con los puntos clave y acciones."
+      }
+    }
+  },
+  "pricing": {
+    "title": "Planes y precios",
+    "subtitle": "Elige el plan que se adapta a tus necesidades. Sin plan gratis, sin sorpresas.",
+    "starter": {
+      "name": "Starter",
+      "price": "$5",
+      "period": "/mes",
+      "description": "60 minutos de procesamiento al mes.",
+      "cta": "Elegir Starter",
+      "features": [
+        "60 minutos de procesamiento/mes",
+        "Resúmenes con IA",
+        "Historial de 30 días"
+      ]
+    },
+    "premium": {
+      "name": "Premium",
+      "price": "$19",
+      "period": "/mes",
+      "description": "300 minutos de procesamiento al mes.",
+      "cta": "Elegir Premium",
+      "badge": "POPULAR",
+      "features": [
+        "300 minutos de procesamiento/mes",
+        "Resúmenes avanzados con IA",
+        "Historial ilimitado",
+        "Distintos tipos de resumen: Ejecutivo, Técnico y Amigable"
+      ]
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "price": "$29",
+      "period": "/mes",
+      "description": "600 minutos de procesamiento al mes.",
+      "cta": "Elegir Enterprise",
+      "features": [
+        "600 minutos de procesamiento/mes",
+        "Resúmenes avanzados con IA",
+        "Historial ilimitado",
+        "Soporte prioritario",
+        "Traducción automática de resúmenes",
+        "Envío de resúmenes por correo automático"
+      ]
+    },
+    "free": {
+      "title": "Regístrate gratis y obtén 10 minutos de resúmenes",
+      "subtitle": "Sin tarjetas de crédito. Sin sorpresas. Solo regístrate y comienza a crear resúmenes al instante.",
+      "badge": "Prueba gratuita",
+      "features": [
+        "Sin tarjeta",
+        "Acceso inmediato",
+        "Sin compromisos"
+      ],
+      "cta": "Empezar gratis →"
+    }
+  },
+  "faq": {
+    "title": "Preguntas frecuentes",
+    "subtitle": "¿Tienes alguna pregunta? Aquí están las respuestas a las preguntas más comunes.",
+    "questions": [
+      {
+        "question": "¿Qué plataformas de video son compatibles?",
+        "answer": "ClipNotes funciona con enlaces públicos de Zoom, Google Meet, Loom, YouTube y la mayoría de plataformas de video. Si tu plataforma no está en la lista, ¡avísanos!"
+      },
+      {
+        "question": "¿Cómo se maneja la privacidad de mis videos?",
+        "answer": "Tomamos tu privacidad muy en serio. Los videos se procesan de forma segura y se eliminan de nuestros servidores una vez generada la transcripción. No compartimos tu información con terceros."
+      },
+      {
+        "question": "¿Qué tan precisas son las transcripciones?",
+        "answer": "Nuestro sistema de IA ofrece una precisión de aproximadamente 95-98% en condiciones ideales. La calidad del audio, los acentos fuertes o el ruido de fondo pueden afectar la precisión."
+      },
+      {
+        "question": "¿Puedo probar el servicio antes de pagar?",
+        "answer": "Ofrecemos el plan Starter por $5/mes con 60 minutos de procesamiento. Ideal para probar todas las funciones sin compromiso."
+      }
+    ]
+  },
+  "common": {
+    "includes": "Incluye"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Gestiona tus resúmenes y cuenta",
+    "summaryStyle": "Estilo de resumen",
+    "friendlyNewsletter": "Amigable (Newsletter/Updates)",
+    "titleOptional": "Título del resumen (opcional)",
+    "pasteYouTubeLink": "Pega un enlace de YouTube, Loom, Meet, Vimeo, etc.",
+    "summarize": "Resumir",
+    "remainingMinutes": "Te quedan {{minutes}} minutos en tu plan Starter. Considera actualizar tu plan para continuar procesando videos.",
+    "productivityMetrics": "Métricas de Productividad",
+    "completedSummaries": "Resúmenes Completados",
+    "consumedMinutes": "Minutos Consumidos",
+    "readingTime": "Tiempo de Lectura",
+    "summariesPerHour": "Resúmenes por Hora",
+    "videoReadingTime": "Tiempo de Video vs Lectura",
+    "minutesOfVideo": "minutos de video",
+    "remainingLeft": "Te quedan {{minutes}} minutos",
+    "settings": "Ajustes"
+  }
+}

@@ -46,7 +46,6 @@ const DarkModeToggle: React.FC = () => {
       aria-label="Cambiar modo oscuro/claro"
       role="switch"
       aria-checked={isDark}
-      style={{ position: "fixed", top: 16, right: 16, zIndex: 1000 }}
       className="group inline-flex items-center gap-3 select-none"
     >
       <span className="hidden sm:block text-xs font-medium text-secondary-600 dark:text-secondary-300">

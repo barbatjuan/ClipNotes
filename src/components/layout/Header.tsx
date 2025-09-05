@@ -1,15 +1,17 @@
 "use client";
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Bars3Icon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import dynamic from 'next/dynamic';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 
 export default function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   const [showAuth, setShowAuth] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -71,19 +73,19 @@ export default function Header() {
             </Link>
             {!user && (
               <div className="hidden ml-10 space-x-8 lg:block">
-                <Link href="/#features" className="text-sm font-medium text-secondary-600 hover:text-secondary-900 dark:text-secondary-300 dark:hover:text-white">
+          <Link href={`${pathname?.split('/')[1] ? '/' + pathname.split('/')[1] : ''}#features`} className="text-sm font-medium text-secondary-600 hover:text-secondary-900 dark:text-secondary-300 dark:hover:text-white">
                   Cómo funciona
                 </Link>
-                <Link href="/#pricing" className="ml-8 text-sm font-medium text-secondary-600 hover:text-secondary-900 dark:text-secondary-300 dark:hover:text-white">
+            <Link href={`${pathname?.split('/')[1] ? '/' + pathname.split('/')[1] : ''}#pricing`} className="ml-8 text-sm font-medium text-secondary-600 hover:text-secondary-900 dark:text-secondary-300 dark:hover:text-white">
                   Precios
                 </Link>
-                <Link href="/#faq" className="ml-8 text-sm font-medium text-secondary-600 hover:text-secondary-900 dark:text-secondary-300 dark:hover:text-white">
+            <Link href={`${pathname?.split('/')[1] ? '/' + pathname.split('/')[1] : ''}#faq`} className="ml-8 text-sm font-medium text-secondary-600 hover:text-secondary-900 dark:text-secondary-300 dark:hover:text-white">
                   Preguntas Frecuentes
                 </Link>
               </div>
             )}
           </div>
-          <div className="ml-10 space-x-3">
+          <div className="ml-10 space-x-3 flex items-center">
             {user ? (
               <button
                 onClick={handleLogout}
@@ -107,6 +109,9 @@ export default function Header() {
                 </button>
               </>
             )}
+            <div className="ml-3">
+              <LanguageSwitcher />
+            </div>
           </div>
         </div>
       </nav>

@@ -3,6 +3,8 @@ import AuthForm from '@/components/AuthForm';
 import { supabase } from '@/lib/supabase/client';
 import Head from 'next/head';
 import { CheckCircleIcon, LinkIcon, SparklesIcon, DocumentCheckIcon } from '@heroicons/react/24/outline';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/lib/i18n';
 
 import { PaypalSubscribeButton } from '@/components/PaypalSubscribeButton';
 import Header from '@/components/layout/Header';
@@ -14,8 +16,10 @@ import RotatingText from '@/components/RotatingText';
 import { RotatingHeadline } from '@/components/RotatingHeadline';
 import { useFeedback } from '@/hooks/useFeedback';
 import { urlSchema, fileSchema } from '@/utils/validation';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function Home() {
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const [summary, setSummary] = useState('');
   const [todoList, setTodoList] = useState<string[]>([]);
@@ -23,6 +27,13 @@ export default function Home() {
   const [user, setUser] = useState<any>(null);
   const feedback = useFeedback();
   const [showPaypal, setShowPaypal] = useState<'starter' | 'pro' | 'enterprise' | null>(null);
+
+  // Establecer español como idioma predeterminado solo en la primera carga
+  useEffect(() => {
+    if (!localStorage.getItem('i18nextLng')) {
+      i18n.changeLanguage('es');
+    }
+  }, []);
 
   // Detectar usuario autenticado
   useEffect(() => {

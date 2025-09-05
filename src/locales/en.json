@@ -1,0 +1,140 @@
+{
+  "hero": {
+    "title": "Your Recorded {{type}}, Converted to Perfect Notes",
+    "subtitle": "Paste a link or upload a file from Zoom, Meet, or Loom. Instant transcription and summary.",
+    "welcome": "Welcome! You can now generate your summaries.",
+    "loginRequired": "Login or create an account to use the summary generator."
+  },
+  "rotatingWords": ["meetings", "classes", "interviews"],
+  "headlines": [
+    "Paste that endless Friday meeting and summarize it in a few lines. To finish the week on time.",
+    "Another meeting that could have been an email? Turn it into one.",
+    "Looms that nobody watches. Summaries that everyone reads.",
+    "Stop wasting time watching recordings. Start having free afternoons.",
+    "Your team will thank you. (And so will your peace of mind).",
+    "Summarize that class for the exam in key points. To not miss all the weekend fun.",
+    "Perfect class notes, without having to skip the party.",
+    "Skipped class? We'll summarize it for you.",
+    "Your 4-hour study marathons, converted into 4 minutes of reading.",
+    "Pass the exam without sacrificing your social life.",
+    "Turn your 2-hour podcast into a Twitter thread in 2 minutes.",
+    "The best part of your interview, without having to edit it."
+  ],
+  "howItWorks": {
+    "title": "How it works",
+    "steps": {
+      "step1": {
+        "title": "1. Copy your recording link",
+        "description": "Get the link from your Zoom, Google Meet, Loom, or any other platform video."
+      },
+      "step2": {
+        "title": "2. Paste it in ClipNotes",
+        "description": "Our AI will automatically process the video and extract key information."
+      },
+      "step3": {
+        "title": "3. Get your transcription and summary",
+        "description": "Receive a complete transcription and summary with key points and actions."
+      }
+    }
+  },
+  "pricing": {
+    "title": "Plans and pricing",
+    "subtitle": "Choose the plan that fits your needs. No free plan, no surprises.",
+    "starter": {
+      "name": "Starter",
+      "price": "$5",
+      "period": "/month",
+      "description": "60 minutes of processing per month.",
+      "cta": "Choose Starter",
+      "features": [
+        "60 minutes of processing/month",
+        "AI summaries",
+        "30-day history"
+      ]
+    },
+    "premium": {
+      "name": "Premium",
+      "price": "$19",
+      "period": "/month",
+      "description": "300 minutes of processing per month.",
+      "cta": "Choose Premium",
+      "badge": "POPULAR",
+      "features": [
+        "300 minutes of processing/month",
+        "Advanced AI summaries",
+        "Unlimited history",
+        "Different summary types: Executive, Technical, and Friendly"
+      ]
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "price": "$29",
+      "period": "/month",
+      "description": "600 minutes of processing per month.",
+      "cta": "Choose Enterprise",
+      "features": [
+        "600 minutes of processing/month",
+        "Advanced AI summaries",
+        "Unlimited history",
+        "Priority support",
+        "Automatic summary translation",
+        "Automatic email summary delivery"
+      ]
+    },
+    "free": {
+      "title": "Sign up for free and get 10 minutes of summaries",
+      "subtitle": "No credit cards. No surprises. Just sign up and start creating summaries instantly.",
+      "badge": "Free trial",
+      "features": [
+        "No card required",
+        "Instant access",
+        "No commitments"
+      ],
+      "cta": "Start free →"
+    }
+  },
+  "faq": {
+    "title": "Frequently asked questions",
+    "subtitle": "Have any questions? Here are the answers to the most common questions.",
+    "questions": [
+      {
+        "question": "What video platforms are supported?",
+        "answer": "ClipNotes works with public links from Zoom, Google Meet, Loom, YouTube, and most video platforms. If your platform isn't listed, let us know!"
+      },
+      {
+        "question": "How is my video privacy handled?",
+        "answer": "We take your privacy very seriously. Videos are processed securely and removed from our servers once the transcription is generated. We don't share your information with third parties."
+      },
+      {
+        "question": "How accurate are the transcriptions?",
+        "answer": "Our AI system offers approximately 95-98% accuracy under ideal conditions. Audio quality, strong accents, or background noise may affect accuracy."
+      },
+      {
+        "question": "Can I try the service before paying?",
+        "answer": "We offer the Starter plan for $5/month with 60 minutes of processing. Perfect for trying all features without commitment."
+      }
+    ]
+  },
+  "common": {
+    "includes": "Includes"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Manage your summaries and account",
+    "summaryStyle": "Summary Style",
+    "friendlyNewsletter": "Friendly (Newsletter/Updates)",
+    "titleOptional": "Title (optional)",
+    "pasteYouTubeLink": "Paste YouTube, Loom, Meet, Vimeo link, etc.",
+    "summarize": "Summarize",
+    "remainingMinutes": "You have {{minutes}} minutes left in your Starter plan. Consider upgrading your plan to continue processing videos.",
+    "productivityMetrics": "Productivity Metrics",
+    "completedSummaries": "Completed Summaries",
+    "consumedMinutes": "Consumed Minutes",
+    "readingTime": "Reading Time",
+    "summariesPerHour": "Summaries per Hour",
+    "videoReadingTime": "Video vs Reading Time",
+    "minutesOfVideo": "minutes of video",
+    "remainingLeft": "{{minutes}} minutes left",
+    "settings": "Settings"
+  }
+}
